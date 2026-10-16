@@ -1,0 +1,9 @@
+Hi Groupies,
+
+I think we can start the basic logic / flow design, what do you think?
+
+I'm thinking we will need some primitive functions for data validation, which we should be able to code without knowing exactly which scenario we are working on if we use the old data driven approach...
+
+Thoughts??
+
+Peter
