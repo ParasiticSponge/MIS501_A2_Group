@@ -7,3 +7,13 @@ I'm thinking we will need some primitive functions for data validation, which we
 Thoughts??
 
 Peter
+
+------------------------------------------------
+
+Hello.
+
+Sounds good to me, since both scenarios require stuff like name, email, date of birth etc.
+Could we also do the skeleton for the loop? like an options menu that has placeholders such as 'Option A, Option B' etc.
+If we get started on it now, do you want to work on data validation and I can work on the menu skeleton (or the other way around if you prefer). Then when Chris comes we can decide, and then split the extra work load accordingly.
+
+Sam
