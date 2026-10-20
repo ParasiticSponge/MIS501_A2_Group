@@ -5,7 +5,7 @@
         Samantha Stevens - A00054394
 """
 
-from Library import books, users      # Using our custom Library class, we only need to access the books and users.
+from Library import PrintUsers, PrintBooks      # Using our custom Library class, we only need to access the books and users.
 
 def DaysInMonth(month, year=None):
     """ Function that returns the days inside the given month.
@@ -30,4 +30,4 @@ def SignUp():
 def LogIn():
     pass
 
-print(users)  # Print current registered users.
+PrintUsers()  # Print current registered users.
