@@ -5,29 +5,49 @@
         Samantha Stevens - A00054394
 """
 
-from Library import PrintUsers, PrintBooks      # Using our custom Library class, we only need to access the books and users.
-
-def DaysInMonth(month, year=None):
-    """ Function that returns the days inside the given month.
-        month: Integer value of month
-        Returns: Integer of number of days """
-    if month == 1: return 31                       # January has 31 days.
-    elif month == 2: return 28 if year is None else 29 if IsLeapYear(year) else 28  # February has 28 days unless it's a leap year. If no year is given, assume a common year.
-    elif month % 2 == 1 and month < 8: return 31   # There is a hill pattern from March-July, so assign 31 to odd numbers. Any number % 2 will either give a remainder of 0 or 1 (so odd or even).
-    elif month % 2 == 0 and month < 8: return 30   # Then assign 30 to even numbers.
-    elif month % 2 == 0 and month >= 8: return 31  # The hill pattern flips on august. August is an even number, so assign 31 to even numbers past August.
-    else: return 30                                # Finally, assign 30 to odd numbers past August.
-
-def IsLeapYear(year):
-    if (year % 4 != 0): return False               # If the year number isn't divisible by four, it's a common year.
-    elif (year % 100 != 0): return True            # If the year number isn't divisible by 100, it's a leap year.
-    elif (year % 400 != 0): return False           # If the year number isn't divisible by 400, it's a common year.
-    else: return True                              # Otherwise, it's a leap year.
+from Library import users, books, PrintLibraryBooks   # Using our custom Library class, we only need to access the books and users.
 
 def SignUp():
-    pass
+    name = input("Please enter your name: ")
+    yob = input("Please enter your year of birth in the format YYYY: ")
+    contact = input("Please enter your contact information (phone or email): ")
 
 def LogIn():
     pass
 
-PrintUsers()  # Print current registered users.
+def ValidateUser():
+    pass
+
+def Menu():
+    option =input(
+f"""
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  Welcome to the Library System  ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃     Please select an option:    ┃
+┃           1: Log In             ┃
+┃           2: Sign Up            ┃
+┃           3: Quit               ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+""")
+    if option == "1": LogIn()
+    elif option == "2": SignUp()
+    elif option == "3": print("""
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  Thank you for using the Library System. Goodbye!  ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛""")
+
+def main():
+    """ Main function that runs the program. """
+    # TESTING PURPOSES ONLY.
+    # Menu()
+    print("all books:")
+    PrintLibraryBooks()
+    print()
+    user = users[0]     # For testing purposes, we will use the first user in the list.
+    user.BorrowBook(0)  # User borrows the book
+    user.BorrowBook(3)  # User borrows the book
+    print("borrowed books:")
+    user.PrintBorrowedBooks()  # Print the user's borrowed books
+
+main()
