@@ -30,9 +30,9 @@ f"""
 ┃           3: Quit               ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
-    if option == "1": LogIn()
-    elif option == "2": SignUp()
-    elif option == "3": print("""
+    return option
+def Goodbye():
+    print("""
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃  Thank you for using the Library System. Goodbye!  ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛""")
@@ -44,10 +44,24 @@ def main():
     print("all books:")
     PrintLibraryBooks()
     print()
+
     user = users[0]     # For testing purposes, we will use the first user in the list.
     user.BorrowBook(0)  # User borrows the book
     user.BorrowBook(3)  # User borrows the book
     print("borrowed books:")
     user.PrintBorrowedBooks()  # Print the user's borrowed books
+    print()
 
+    user.ReturnBook(3)  # User returns the book
+    print("borrowed books after returning a book:")
+    user.PrintBorrowedBooks()  # Print the user's borrowed books after returning a book
+
+    while True:  # Keep the program running until the user chooses to quit.
+        option = Menu()  # Display the menu and get the user's choice.
+        if option == "1": LogIn()
+        elif option == "2": SignUp()
+        elif option == "3":
+            Goodbye()
+            break
+        else: print("Invalid option. Please try again.")
 main()

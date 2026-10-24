@@ -50,19 +50,20 @@ class User:
             self.brrwd = {}
     def BorrowBook(self, isbn):
         """ Allows a user to borrow a book. """
-        self.brrwd[isbn] = books[isbn].period                       # Add the book's borrow period to the user's borrowed books dictionary. Key = ISBN, and value = book period. This allows the library to track which books the user borrowed, and for how long. The algorithm can simply deduct 1 from the period each day. The book is due when it reaches 0. This is better than storing the due date directly.
+        try: self.brrwd[isbn] = CalculateDueDate(date, books[isbn].period)             # Calculate the due date of the book and store it in the user's borrowed books dictionary. Key = ISBN, and value = due date. Rather than storing the value as a period, where the library would have to calculate the due date each time, we can store the due date directly. This is more efficient, as the library can simply check if the due date has passed or not.
+        except KeyError: print(f"Book with ISBN {isbn} not found.")
     def ReturnBook(self, isbn):
         """ Allows a user to return a book. """
-        if isbn in self.brrwd: del self.brrwd[isbn]                 # Check if the book is in the user's borrowed books dictionary. If so, Remove the book from the user's borrowed books dictionary.
-        else: print(f"You have not borrowed this book.")            # If the book is not in the user's borrowed books dictionary, print an error message.
+        try: del self.brrwd[isbn]                 # Check if the book is in the user's borrowed books dictionary. If so, Remove the book from the user's borrowed books dictionary.
+        except KeyError: print(f"You have not borrowed this book.")            # If the book is not in the user's borrowed books dictionary, print an error message.
     def PrintBorrowedBooks(self):
         """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """
         for isbn in self.brrwd:                                     # For each key in the user's borrowed books (For each ISBN int)
             print(f"ISBN: {isbn}, Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
                   f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
-                  f"Due Date: {CalculateDueDate(date, self.brrwd[isbn])}")
+                  f"Due Date: {self.brrwd[isbn]}")
 
-# Add a bunch of book data to simulate pre-existing books in the library.
+# Add a bunch of book data to simulate pre-existing books in the library. They Key is the ISBN.
 books[0] = Book(0, "The Silver Eyes", "Scott Cawthon & Kira Breed Wrisley", 7)
 books[1] = Book(1, "Every Day", "David Levithan", 14)
 books[2] = Book(2, "M is for Monster", "Talia Dutton", 14)
