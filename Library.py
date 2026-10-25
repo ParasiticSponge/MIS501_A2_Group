@@ -35,7 +35,7 @@ def CalculateDueDate(borrowDate, period):
     return f"{year}-{month:02d}-{day:02d}"             # Return the due date in the format YYYY-MM-DD. The :02d formats the month and day to be two digits with leading zeros if necessary.
 
 class Book:
-    # https://www.w3schools.com/python/python_class_init.asp
+    # Self initialisation learned through W3schools: https://www.w3schools.com/python/python_class_init.asp
     def __init__(self, isbn,title, author, period):
         self.isbn = isbn                     # ISBN of book. This is a unique identifier for each book.
         self.title = title                   # Title of book
