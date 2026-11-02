@@ -5,20 +5,15 @@ minTitleLength = 20                            # This is the minimum length of t
 minAuthorLength = 35                           # This is the minimum length of the author string. It serves the same purpose as minTitleLength, but for the author string.
 
 def days_in_month(month, year=None):
-    """ Returns an integer value of the days inside the given month. """
-    if month == 1: return 31                       # January has 31 days.
-    elif month == 2: return 28 if year is None else 29 if is_leap_year(year) else 28  # February has 28 days unless it's a leap year. If no year is given, assume a common year.
-    elif month % 2 == 1 and month < 8: return 31   # There is a hill pattern from March-July, so assign 31 to odd numbers. Any number % 2 will either give a remainder of 0 or 1 (so odd or even).
-    elif month % 2 == 0 and month < 8: return 30   # Then assign 30 to even numbers.
-    elif month % 2 == 0 and month >= 8: return 31  # The hill pattern flips on august. August is an even number, so assign 31 to even numbers past August.
-    else: return 30                                # Finally, assign 30 to odd numbers past August.
+    """ Returns an integer value of the number days in the given month. """
+    def days_in_month(month, year=None):
+    days_in_months = [31,28,31,30,31,30,31,31,30,31,30,31]
+    days = days_in_months[month-1]
+    return days
 
 def is_leap_year(year):
     """ Returns True if the given year is a leap year, and False if it is a common year. """
-    if (year % 4 != 0): return False               # If the year number isn't divisible by four, it's a common year.
-    elif (year % 100 != 0): return True            # If the year number isn't divisible by 100, it's a leap year.
-    elif (year % 400 != 0): return False           # If the year number isn't divisible by 400, it's a common year.
-    else: return True                              # Otherwise, it's a leap year.
+    return year % 4 == 0 and (year % 400 !=0 and year % 100 !=0 )
 
 def calculate_due_date(borrowDate, period):
     """ Calculate the due date of a borrowed book and return a string in the format YYYY-MM-DD 
