@@ -6,38 +6,38 @@
 """
 
 from Library import users, books, PrintLibraryBooks                                                  # Using our custom Library class, we only need to access the books and users.
-def ValidateUser():
+def validate_user():
     pass
 
-def SignUp():
+def sign_up():
     """ Allows a user to sign up for the library system. If users sign up, they should automatically be logged in. """
     name = input("Please enter your name: ")
     yob = input("Please enter your year of birth in the format YYYY: ")
     contact = input("Please enter your contact information (phone or email): ")
     print(f"Thank you for signing up, {name}!")
 
-def LogIn():
+def login():
                                                                                                      # TODO Validation
     while True:
-        option = UserMenu()                                                                          # After validation, show the user menu.
-        if option == "1": BorrowBook(users[0])                                                       # For testing purposes, we will use the first user in the list.
+        option = user_menu()                                                                          # After validation, show the user menu.
+        if option == "1": borrow_book(users[0])                                                       # For testing purposes, we will use the first user in the list.
                                                                                                      # TODO: OTHER OPTIONS
         elif option == "4": PrintLibraryBooks()                                                      # Print all the books in the library.
         elif option == "5": break
         else: print("Invalid option. Please try again.")
 
-def BorrowBook(user):
+def borrow_book(user):
     """ Allows a user to borrow books. """
     while True:
         action = input("Please enter ISBN or Title of the book. Enter 'd' to finish: ")
-        if action == "d": break                                                                      # Exit the loop and return back to caller (LogIn() function).
+        if action == "d": break                                                                      # Exit the loop and return back to caller (login() function).
         if action.isdigit():                                                                         # Check if the input is a number.
             action = int(action)                                                                     # Convert the input to an integer.
             # The 'in' concept has been learned through CISCO module 3.6.4. It checks to see if the specified value exists in a string/list/tuple etc.
             if action in books:                                                                      # Check if the ISBN is in the books dictionary.
                 if action in user.brrwd: print(f"You have already borrowed {books[action].title}.")  # Check if the user has already borrowed the book.
                 else:
-                    user.BorrowBook(action)                                                          # Call the BorrowBook method from the User class.
+                    user.borrow_book(action)                                                          # Call the borrow_book method from the User class.
                     print(f"Successfully borrowed {books[action].title}. It is due on {user.brrwd[action]}.")  # Print the title of the book and the due date.
             else: print(f"Book with ISBN {action} not found. Please try again.")                     # If the ISBN is not in the books dictionary, print an error message.
         else:
@@ -53,19 +53,19 @@ def BorrowBook(user):
                     if action < 1 or action > len(found): print("Invalid option. Please try again.") # Check if the input is a valid number.
                     else:
                         isbn, _ = found[action - 1]                                                  # Unpack the tuple into two variable, but keep isbn and discard the other with _.
-                        AlrdyBrrwdMsg(user, isbn)                                                    # If they already own it, tell the user they already borrowed that book, otherwise add it to the borrowed books library
+                        alrdy_brrwd_msg(user, isbn)                                                    # If they already own it, tell the user they already borrowed that book, otherwise add it to the borrowed books library
             else:                                                                                    # If the length is only one, don't ask the user to choose, just unpack the tuple and check the book
                 isbn, _ = found[0]                                                                   # Unpack the tuple into two variable, but keep isbn and discard the other with _.
-                AlrdyBrrwdMsg(user, isbn)
+                alrdy_brrwd_msg(user, isbn)
 
-def AlrdyBrrwdMsg(user, isbn):
+def alrdy_brrwd_msg(user, isbn):
     """ Checks if the user has already borrowed the book. If they have, tell them, otherwise, add the book to the user's borrowed books library. """
     if isbn in user.brrwd: print(f"You have already borrowed {books[isbn].title}.")  # Check if the user has already borrowed the book.
     else:
-        user.BorrowBook(isbn)                                                      # Call the BorrowBook method from the User class.
+        user.borrow_book(isbn)                                                      # Call the borrow_book method from the User class.
         print(f"Successfully borrowed {books[isbn].title}. It is due on {user.brrwd[isbn]}.")  # Print the title of the book and the due date.
 
-def Menu():
+def menu():
     option =input(
 f"""
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -78,7 +78,7 @@ f"""
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
-def UserMenu():
+def user_menu():
     option = input(
 f"""
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -107,8 +107,8 @@ def main():
     # print()
 
     # user = users[0]     # For testing purposes, we will use the first user in the list.
-    # user.BorrowBook(0)  # User borrows the book
-    # user.BorrowBook(3)  # User borrows the book
+    # user.borrow_book(0)  # User borrows the book
+    # user.borrow_book(3)  # User borrows the book
     # print("borrowed books:")
     # user.PrintBorrowedBooks()  # Print the user's borrowed books
     # print()
@@ -118,9 +118,9 @@ def main():
     # user.PrintBorrowedBooks()  # Print the user's borrowed books after returning a book
 
     while True:  # Keep the program running until the user chooses to quit.
-        option = Menu()  # Display the menu and get the user's choice.
-        if option == "1": LogIn()
-        elif option == "2": SignUp()
+        option = menu()  # Display the menu and get the user's choice.
+        if option == "1": login()
+        elif option == "2": sign_up()
         elif option == "3":
             Goodbye()
             break
