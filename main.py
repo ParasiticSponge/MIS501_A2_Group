@@ -1,4 +1,6 @@
-""" This program tracks library books that users borrow.
+# -*- coding: utf-8 -*-
+"""
+This program tracks library books that users borrow.
     Authors: 
         Christopher Moyle - 
         Peter Poli - 
@@ -12,8 +14,6 @@ minTitleLength = 20                            # This is the minimum length of t
 minAuthorLength = 35                           # This is the minimum length of the author string. It serves the same purpose as minTitleLength, but for the author string.
 
 def days_in_month(month, year=None):
-    """ Returns an integer value of the number days in the given month. """
-    def days_in_month(month, year=None):
     days_in_months = [31,28,31,30,31,30,31,31,30,31,30,31]
     days = days_in_months[month-1]
     return days
@@ -214,4 +214,5 @@ def main():
             Goodbye()
             break
         else: print("Invalid option. Please try again.")
+
 main()
