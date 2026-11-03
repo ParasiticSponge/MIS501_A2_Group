@@ -34,6 +34,7 @@ def clear_screen():
 
 
 def days_in_month(month, year=None):
+    """ Returns an integer value of the number days in the given month. """
     """
     int days_in_month(month,year)
     Returns an integer value of the number of days in the month passed as an int and year passed as an int - if year is not passed then leap year not taken into account
@@ -88,21 +89,25 @@ class User:
             self.name = name                 # User's name.
             self.yob = yob                   # User's year of birth.
             self.contact = contact           # Contact can either be phone or email. First check if .isdigit(), if not it must be an email, then check if email is in valid format.
-            self.brrwd = {}
+
+class Member(User):
+    def __init__(self, name, yob, contact):
+        super().__init__(name, yob, contact)  # Call the parent class constructor to initialize name, yob, and contact.
+        self.borrowed = {}  
     def borrow_book(self, isbn):
         """ Allows a user to borrow a book. """
-        try: self.brrwd[isbn] = calculate_due_date(date, books[isbn].period)             # Calculate the due date of the book and store it in the user's borrowed books dictionary. Key = ISBN, and value = due date. Rather than storing the value as a period, where the library would have to calculate the due date each time, we can store the due date directly. This is more efficient, as the library can simply check if the due date has passed or not.
+        try: self.borrowed[isbn] = calculate_due_date(date, books[isbn].period)             # Calculate the due date of the book and store it in the user's borrowed books dictionary. Key = ISBN, and value = due date. Rather than storing the value as a period, where the library would have to calculate the due date each time, we can store the due date directly. This is more efficient, as the library can simply check if the due date has passed or not.
         except KeyError: print(f"Book with ISBN {isbn} not found.")
     def return_book(self, isbn):
         """ Allows a user to return a book. """
-        try: del self.brrwd[isbn]                 # Check if the book is in the user's borrowed books dictionary. If so, Remove the book from the user's borrowed books dictionary.
+        try: del self.borrowed[isbn]                 # Check if the book is in the user's borrowed books dictionary. If so, Remove the book from the user's borrowed books dictionary.
         except KeyError: print(f"You have not borrowed this book.")            # If the book is not in the user's borrowed books dictionary, print an error message.
-    def print_user_book_list(self):
+    def print_borrowed(self):
         """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """
-        for isbn in self.brrwd:                                     # For each key in the user's borrowed books (For each ISBN int)
-            print(f"ISBN: {isbn}, Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
-                  f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
-                  f"Due Date: {self.brrwd[isbn]}")
+        for isbn in self.borrowed:                                     # For each key in the user's borrowed books (For each ISBN int)
+            print(f"ISBN: {isbn}, Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the borrowed dictionary value
+                    f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
+                    f"Due Date: {self.borrowed[isbn]}")
 
 
 # Add a bunch of book data to simulate pre-existing books in the library. They Key is the ISBN.
@@ -115,10 +120,26 @@ books[4] = Book(4, "The Shining", author, 14)
 books[5] = Book(5, "Pet Sematary", author, 7)
 books[6] = Book(6, "The Institute", author, 7)
 
+# library_assets = {
+#     0: Book(),
+#     1: Book("J. R. R. Tolkien", "The Hobbit", 7, "blah blah blah", paperback=9780261103344, hardcover=9780261103283, digital=9780261103587),
+#     2: Book("David Levithan", "Everyday", 14, "blah blah blah", paperback=9780307931894, digital=9780307931111),
+#     3: Book("Talia Dutton", "M is for Monster", 14, "blah blah blah", paperback=9781419751974),
+#     4: Book("Haegi", "Kill the Villainess", 27, "blah blah blah", paperback=9798400902864),
+#     5: Book("Stephen King", "Pet Sematary", 7, "blah blah blah", paperback=9781444708134, audio=9781473688582, digital=9781848940857),
+#     6: Book("Stephen King", "The Institute", 7, "blah blah blah", paperback=9781529355413, audio=9781529355383, digital=9781529355420),
+#     4: Book("Stephen King", "The Shining", 14, "blah blah blah", paperback=9781399765350),
+#     5: Newspaper("The Courier Mail", "03/09/1945", None, physical=9780000000000, digital=9780000000001),
+#     6: Music("The Rolling Stones", "Tattoo You", 7, "Hard Rock", ("Start Me Up", ...), cd=9780000000002, vinyl=9780000000003, digital=9780000000004),
+#     7: Video("CoolAuthor", "CoolTitle", "SOMESUMMARY", 14, dvd=9780000000005, bluray=9780000000006, digital=9780000000007),
+#     8: Misc("", "", 14, physical=9780000000008, digital=9780000000009)
+# }
+
+
 # Add a bunch of user data to simulate pre-existing users in the library.
-users.append(User("Kira", 1980, "CatLover2048@example.com"))
-users.append(User("Ron", 1967, "GuyWithMoustache@example.com"))
-users.append(User("Davidson", 2005, "FFunkinBoy@domain.edu.au"))
+users.append(Member("Kira", 1980, "CatLover2048@example.com"))
+users.append(Member("Ron", 1967, "GuyWithMoustache@example.com"))
+users.append(Member("Davidson", 2005, "FFunkinBoy@domain.edu.au"))
 
 def print_library_catalogue():
     """ Function that prints all the books in the library collection. """
@@ -149,50 +170,41 @@ def login():
 # TODO Validation
     while True:
         option = user_menu()                                                                          # After validation, show the user menu.
-        if option == "1": borrow_book(users[0])                                                       # For testing purposes, we will use the first user in the list.
+        if option == "1": borrow_asset(users[0])                                                       # For testing purposes, we will use the first user in the list.
                                                                                                      # TODO: OTHER OPTIONS
-        elif option == "4": PrintLibraryBooks()                                                      # Print all the books in the library.
+        elif option == "4": print_library_catalogue()                                                      # Print all the books in the library.
         elif option == "5": break
         else: print("Invalid option. Please try again.")
 
-def borrow_book(user):
-    """ Allows a user to borrow books. """
+def borrow_asset(user):
+    """ Allows a user to borrow assets. """
+    found = check_asset(user, "borrow")
+    if found != None: alrdy_brrwd_msg(user, found[0][0])                                                    # If they already own it, tell the user they already borrowed that book, otherwise add it to the borrowed books library
+
+def return_asset(user):
+    found = check_asset(user, "return")
+    if found != None: user.return_book(found[0][0])                                                        # Call the return_book method from the User class.
+
+def check_asset(user, decision):
+    """ Allows a user to return assets. """
     while True:
-        action = input("Please enter ISBN or Title of the book. Enter 'd' to finish: ")
+        while True:
+            action = input(f"Please enter the type of media you would like to {decision} (book, newspaper, music, video, misc) or enter 'd' to finish:\n> ")
+            if action.lower() not in ("book", "newspaper", "music", "video", "misc", "d"): print("Invalid option. Please try again.")  # If the input is not a valid option, print an error message.
+            else: break                                                                                     # If the input is valid, break out of the loop and continue with the rest of the function.
         if action == "d": break                                                                      # Exit the loop and return back to caller (login() function).
-        if action.isdigit():                                                                         # Check if the input is a number.
-            action = int(action)                                                                     # Convert the input to an integer.
-            # The 'in' concept has been learned through CISCO module 3.6.4. It checks to see if the specified value exists in a string/list/tuple etc.
-            if action in books:                                                                      # Check if the ISBN is in the books dictionary.
-                if action in user.brrwd: print(f"You have already borrowed {books[action].title}.")  # Check if the user has already borrowed the book.
-                else:
-                    user.borrow_book(action)                                                          # Call the borrow_book method from the User class.
-                    print(f"Successfully borrowed {books[action].title}. It is due on {user.brrwd[action]}.")  # Print the title of the book and the due date.
-            else: print(f"Book with ISBN {action} not found. Please try again.")                     # If the ISBN is not in the books dictionary, print an error message.
-        else:
-            found = [(isbn, books[isbn].title) for isbn in books if action.lower() in books[isbn].title.lower()] # Create a tuple of (ISBN, title) for all books that match the string input. This is so if there is more than one, the user can specify which one they want.
-            if len(found) == 0: print(f"Book with title '{action}' not found. Please try again.")    # If the list is empty, the book is not found, so print an error message.
-            if len(found) > 1:                                                                       # If the list is longer than 1, multiple books match the input, so the user must choose between them.
-                print(f"Multiple books found with the name '{action}'. Please choose a number from the list below.")
-                # The use of enumeration was learned through AI. Please see group document for details. Enumeration loops through the tuple and returns the index associated with the value.
-                for i, (isbn, title) in enumerate(found, start=1): print(f"{i}. ISBN: {isbn}, Title: {title}")   # Print the ISBN and title of each book that matches the input. The user can then choose which one they want to borrow.
-                action = input("Please enter the number of the book you want to borrow: ")           # Reuse the action variable.
-                if action.isdigit():                                                                 # Check if the input is a number.
-                    action = int(action)                                                             # Convert the input to an integer.
-                    if action < 1 or action > len(found): print("Invalid option. Please try again.") # Check if the input is a valid number.
-                    else:
-                        isbn, _ = found[action - 1]                                                  # Unpack the tuple into two variable, but keep isbn and discard the other with _.
-                        alrdy_brrwd_msg(user, isbn)                                                    # If they already own it, tell the user they already borrowed that book, otherwise add it to the borrowed books library
-            else:                                                                                    # If the length is only one, don't ask the user to choose, just unpack the tuple and check the book
-                isbn, _ = found[0]                                                                   # Unpack the tuple into two variable, but keep isbn and discard the other with _.
-                alrdy_brrwd_msg(user, isbn)
+        name = input(f"Please enter the title of the {action} you would like to {decision}:\n> ")
+        media_type = Book if action.lower() == "book" else None                                      # Convert the input to lowercase to make it case-insensitive.
+        found = [(isbn, books[isbn].title) for isbn in books if name.lower() in books[isbn].title.lower() and isinstance(books[isbn], media_type)] # 
+        if len(found) == 0: print(f"{action} with title '{name}' not found. Please try again.")    # If the list is empty, the book is not found, so print an error message.
+        else: alrdy_brrwd_msg(user, found[0][0])                                                    # If they already own it, tell the user they already borrowed that book, otherwise add it to the borrowed books library
 
 def alrdy_brrwd_msg(user, isbn):
     """ Checks if the user has already borrowed the book. If they have, tell them, otherwise, add the book to the user's borrowed books library. """
-    if isbn in user.brrwd: print(f"You have already borrowed {books[isbn].title}.")  # Check if the user has already borrowed the book.
+    if isbn in user.borrowed: print(f"You have already borrowed {books[isbn].title}.")  # Check if the user has already borrowed the book.
     else:
         user.borrow_book(isbn)                                                      # Call the borrow_book method from the User class.
-        print(f"Successfully borrowed {books[isbn].title}. It is due on {user.brrwd[isbn]}.")  # Print the title of the book and the due date.
+        print(f"Successfully borrowed {books[isbn].title}. It is due on {user.borrowed[isbn]}.")  # Print the title of the book and the due date.
 
 def menu():
     option =input(
