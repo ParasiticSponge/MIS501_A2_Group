@@ -16,6 +16,7 @@ minAuthorLength = 35                           # This is the minimum length of t
 def days_in_month(month, year=None):
     days_in_months = [31,28,31,30,31,30,31,31,30,31,30,31]
     days = days_in_months[month-1]
+    if year!=None and (is_leap_year(year) and month==2) : days+=1
     return days
 
 def is_leap_year(year):
