@@ -34,7 +34,6 @@ def clear_screen():
 
 
 def days_in_month(month, year=None):
-    """ Returns an integer value of the number days in the given month. """
     """
     int days_in_month(month,year)
     Returns an integer value of the number of days in the month passed as an int and year passed as an int - if year is not passed then leap year not taken into account
@@ -177,16 +176,34 @@ def login():
         else: print("Invalid option. Please try again.")
 
 def borrow_asset(user):
-    """ Allows a user to borrow assets. """
+    """
+    void borrow_asset(user)
+    Allows a user to borrow a book. This function has no return value, but is part of the main login() loop.
+    Arguments :
+        user : User object
+    """
     found = check_asset(user, "borrow")
     if found != None: alrdy_brrwd_msg(user, found[0][0])                                                    # If they already own it, tell the user they already borrowed that book, otherwise add it to the borrowed books library
 
 def return_asset(user):
+    """
+    void return_asset(user)
+    Allows a user to return a book. This function has no return value, but is part of the main login() loop.
+    Arguments :
+        user : User object
+    """
     found = check_asset(user, "return")
     if found != None: user.return_book(found[0][0])                                                        # Call the return_book method from the User class.
 
 def check_asset(user, decision):
-    """ Allows a user to return assets. """
+    """
+    tuple check_asset(user, decision)
+    Returns a tuple of the ISBN and title of the book if found, otherwise returns None. It also checks if the user has already borrowed the book. If they have, it tells them they have already borrowed it, otherwise it adds it to their borrowed books library.
+    Arguments :
+        user : User object
+        decision : str - either "borrow" or "return"
+    Returns   : tuple - (isbn, title) if found, None otherwise
+    """
     while True:
         while True:
             action = input(f"Please enter the type of media you would like to {decision} (book, newspaper, music, video, misc) or enter 'd' to finish:\n> ")
