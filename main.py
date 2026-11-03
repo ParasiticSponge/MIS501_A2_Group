@@ -13,15 +13,16 @@ date = "2026-10-22"                            # This is a placeholder for the c
 minTitleLength = 20                            # This is the minimum length of the title string. It is used to format the output of the print_library_catalogue() function. If the title is shorter than this length, it will be padded with spaces to align the output.
 minAuthorLength = 35                           # This is the minimum length of the author string. It serves the same purpose as minTitleLength, but for the author string.
 
+
+def is_leap_year(year):
+    """ Returns True if the given year is a leap year, and False if it is a common year. """
+    return year % 4 == 0 and (year % 400 !=0 and year % 100 !=0 )
+
 def days_in_month(month, year=None):
     days_in_months = [31,28,31,30,31,30,31,31,30,31,30,31]
     days = days_in_months[month-1]
     if year!=None and (is_leap_year(year) and month==2) : days+=1
     return days
-
-def is_leap_year(year):
-    """ Returns True if the given year is a leap year, and False if it is a common year. """
-    return year % 4 == 0 and (year % 400 !=0 and year % 100 !=0 )
 
 def calculate_due_date(borrowDate, period):
     """ Calculate the due date of a borrowed book and return a string in the format YYYY-MM-DD 
