@@ -12,6 +12,7 @@ users = []               # Create a list to store the users in the library. Each
 date = "2026-10-22"      # This is a placeholder for the current date. In a real program, you would use the datetime module to get the current date.
 minTitleLength = 20      # This is the minimum length of the title string. It is used to format the output of the print_library_catalogue() function. If the title is shorter than this length, it will be padded with spaces to align the output.
 minAuthorLength = 35     # This is the minimum length of the author string. It serves the same purpose as minTitleLength, but for the author string.
+minMediaLength = 15
 
 # ----------------------- Classes ------------------------
 
@@ -57,9 +58,13 @@ class Member(User):
             Returns: None
         """
         for isbn in self.borrowed:                                                                          # For each key in the user's borrowed books (For each ISBN int)
+            # print(f"Media: {library_assets[isbn].__class__.__name__},{' ' * (minMediaLength - len(library_assets[isbn].__class__.__name__))}" +
+            #       f"Title: {library_assets[isbn].title},{' ' * (minTitleLength - len(library_assets[isbn].title))}" +         # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the borrowed dictionary value
+            #       f"Author: {library_assets[isbn].author},{' ' * (minAuthorLength - len(library_assets[isbn].author))}" + 
+            #       f"Due Date: {self.borrowed[isbn]}")
             print(f"Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +         # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the borrowed dictionary value
-                    f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
-                    f"Due Date: {self.borrowed[isbn]}")
+                  f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
+                  f"Due Date: {self.borrowed[isbn]}")
     def view_info(self):
         """ Prints the user's information. 
             Arguments: None
@@ -82,6 +87,9 @@ class Student(Member):
     def __init__(self, name, yob, contact, password):
         super().__init__(name, yob, contact, password)  # Call the parent class constructor to initialize name, yob, contact, and password.
         self.borrow_limit = 8                           # Students can borrow up to 8 books at a time.
+
+# admin can use this line for printing all the users in the dictionary.
+# for user in users: print(f"Name: {user.name}, Year of Birth: {user.yob}, Contact: {user.contact}")          # Prints all the users in the library collection. It prints the user's name, year of birth, and contact information.
 
 # Add a bunch of book data to simulate pre-existing books in the library. They Key is the ISBN.
 books[0] = Book(0, "The Silver Eyes", "Scott Cawthon & Kira Breed Wrisley", 7)
@@ -116,9 +124,9 @@ users.append(Member("Kira", 1980, "CatLover2048@example.com", "password4"))
 users.append(Member("Ron", 1967, "GuyWithMoustache@example.com", "password5"))
 users.append(Member("Davidson", 2005, "FFunkinBoy@domain.edu.au", "password6"))
 
-# ----------------------------------------------------------
+# ------------------------------------------------------------------
 
-# ----------------------- Functions ------------------------
+# ----------------------- General Functions ------------------------
 
 def clear_screen():
     """ clear_screen()
@@ -175,10 +183,6 @@ def print_library_catalogue():
     for book in books:
         print(f"ISBN: {book}, Title: {books[book].title},{' ' * (minTitleLength - len(books[book].title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
               f"Author: {books[book].author},{' ' * (minAuthorLength - len(books[book].author))} Borrowing Period: {books[book].period} days")
-        
-def list_library_users():
-    """ Function that prints all the users in the library collection. """
-    for user in users: print(f"Name: {user.name}, Year of Birth: {user.yob}, Contact: {user.contact}")          # Prints all the users in the library collection. It prints the user's name, year of birth, and contact information.
 
 def validate_user():
     pass
@@ -226,6 +230,10 @@ def login():
             clear_screen()
             break
 
+# ------------------------------------------------------------------
+
+# ----------------------- User Functions ------------------------
+
 def borrow_asset(user):
     """
     Allows a user to borrow a book. This function has no return value, but is part of the main login() loop.
@@ -236,10 +244,10 @@ def borrow_asset(user):
         clear_screen()                                                                                                  # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
         found = check_asset("borrow")
         if found != None: 
-            if found[0][0] in user.borrowed: print(f"You have already borrowed {books[found[0][0]].title}.")            # Check if the user has already borrowed the book.
+            if found[0][0] in user.borrowed: print(f"You have already borrowed {found[0][1]}.")            # Check if the user has already borrowed the book.
             else:
                 user.borrow_book(found[0][0])                                                                           # Call the borrow_book method from the User class.
-                input(f"Successfully borrowed {books[found[0][0]].title}. It is due on {user.borrowed[found[0][0]]}. Press enter to continue...\n")  # Print the title of the book and the due date.
+                input(f"Successfully borrowed {found[0][1]}. It is due on {user.borrowed[found[0][0]]}. Press enter to continue...\n")  # Print the title of the book and the due date.
         else: break                                                                                                     # Exit the loop and return back to caller (login() function).
 
 def return_asset(user):
@@ -251,10 +259,10 @@ def return_asset(user):
         clear_screen()
         found = check_asset("return")
         if found != None: 
-            if found[0][0] not in user.borrowed: print(f"You have not borrowed {books[found[0][0]].title}.")  # Check if the user has the book.
+            if found[0][0] not in user.borrowed: print(f"You have not borrowed {found[0][1]}.")  # Check if the user has the book.
             else:
                 user.return_book(found[0][0])                                                                 # Call the return_book method from the User class.
-                input(f"Successfully returned {books[found[0][0]].title}. Press enter to continue...\n")      # Print the title of the book and a message to press enter to continue.
+                input(f"Successfully returned {found[0][1]}. Press enter to continue...\n")      # Print the title of the book and a message to press enter to continue.
         else: break                                                                                           # Exit the loop and return back to caller (login() function).
 
 def check_asset(decision):
@@ -296,6 +304,30 @@ def user_update_info(user):
     input(f"Your information has been updated.\nName: {user.name}\nYear of Birth: {user.yob}\nContact: {user.contact}\nPress enter to continue...\n")  # Print a message to indicate that the user's information has been updated.
 
 # ----------------------------------------------------------
+
+# --------------------- Admin Functions ---------------------
+
+def add_asset():
+    """ Allows an admin to add a book to the library. This function has no return value, but is part of the main login() loop.
+        Arguments: None
+        Returns: None
+    """
+    pass
+
+def remove_asset():
+    """ Allows an admin to remove a book from the library. This function has no return value, but is part of the main login() loop.
+        Arguments: None
+        Returns: None
+    """
+    while True:
+        clear_screen()                                                                                                  # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
+        found = check_asset("remove")
+        if found != None:
+            del books[found[0][0]]                                                                                      # Remove the book from the library.
+            input(f"Successfully removed {found[0][1]}. Press enter to continue...\n")                                  # Print the title of the book and a message to press enter to continue.
+        else: break                                                                                                     # Exit the loop and return back to caller (login() function).
+
+# -----------------------------------------------------------
 
 # ------------------------- Menus --------------------------
 
