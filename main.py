@@ -5,6 +5,7 @@
         Peter Poli - 
         Samantha Stevens - A00054394
 """
+import inspect
 import os
 
 library_assets = {}      # Create a dictionary to store the assets in the library. Key = ISBN of asset, and value = asset object. This allows faster lookup using the dictionary key rather than searching through a list of books.
@@ -245,7 +246,7 @@ def borrow_asset(user):
     """
     while True:
         clear_screen()                                                                                                  # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
-        found = check_asset("borrow")
+        found = user_check_asset("borrow")
         if found != None: 
             if found[0][0] in user.borrowed: print(f"You have already borrowed {found[0][1]}.")                         # Check if the user has already borrowed the book.
             else:
@@ -260,7 +261,7 @@ def return_asset(user):
     """
     while True:
         clear_screen()
-        found = check_asset("return")
+        found = user_check_asset("return")
         if found != None: 
             if found[0][0] not in user.borrowed: print(f"You have not borrowed {found[0][1]}.")  # Check if the user has the book.
             else:
@@ -269,22 +270,29 @@ def return_asset(user):
         else: break                                                                                           # Exit the loop and return back to caller (login() function).
 
 def check_asset(decision):
-    """ Returns a tuple of the ISBN and title of the book if found, otherwise returns None. It also checks if the user has already borrowed the book. If they have, it tells them they have already borrowed it, otherwise it adds it to their borrowed books library.
-        Arguments:
-            decision: str - either "borrow" or "return"
-        Returns: tuple - (isbn, title) if found, None otherwise
+    """
     """
     while True:
-        action = input(f"Please enter the type of media you would like to {decision} (book, newspaper, music, video, misc) or enter 'd' to finish:\n> ")
-        if action.lower() not in ("book", "newspaper", "music", "video", "misc", "d"): print("Invalid option. Please try again.")  # If the input is not a valid option, print an error message.
+        accepted_media = ("book", "newspaper", "music", "video", "course", "misc")  # Create a tuple of accepted media types. This is used to validate the user's input.
+        action = input(f"Please enter the type of media you would like to {decision} {accepted_media} or enter 'd' to finish:\n> ")
+        if action.lower() not in accepted_media + ("d",): print("Invalid option. Please try again.")  # If the input is not a valid option, print an error message.
         else: break                                                                                                                # If the input is valid, break out of the loop and continue with the rest of the function.
     if action == "d": return None                                                                                                  # If the user enters 'd', return None to indicate that they are finished.
     else:
         name = input(f"Please enter the title of the {action} you would like to {decision}:\n> ")
         media_type = Book if action.lower() == "book" else None                                                                        # Convert the input to lowercase to make it case-insensitive.
-        found = [(isbn, library_assets[isbn].title) for isbn in library_assets if name.lower() in library_assets[isbn].title.lower() and isinstance(library_assets[isbn], media_type)] # 
-        if len(found) == 0: print(f"{action} with title '{name}' not found. Please try again.")                                        # If the list is empty, the book is not found, so print an error message.
-        else: return found
+        return (action, name, media_type)                                                                                          # Return a tuple containing the action, name, and media type.
+
+def user_check_asset(decision):
+    """ This function checks the library for an asset based on the user's decision. This function checks if the user has already borrowed the book. If they have, it tells them they have already borrowed it, otherwise it adds it to their borrowed books library.
+        Arguments:
+            decision: str - either "borrow" or "return"
+        Returns: tuple - (isbn, title) if found, None otherwise
+    """
+    action, name, media_type = check_asset(decision)
+    found = [(isbn, library_assets[isbn].title) for isbn in library_assets if name.lower() in library_assets[isbn].title.lower() and isinstance(library_assets[isbn], media_type)] # 
+    if len(found) == 0: print(f"{action} with title '{name}' not found. Please try again.")                                        # If the list is empty, the book is not found, so print an error message.
+    else: return found
 
 def alrdy_brrwd_msg(user, isbn):
     """ Checks if the user has already borrowed the book. If they have, tell them, otherwise, add the book to the user's borrowed books library. """
@@ -315,7 +323,21 @@ def add_asset():
         Arguments: None
         Returns: None
     """
-    pass
+    action, name, media_type = check_asset("add")
+    author = input(f"Please enter the author of the {action}:\n> ")
+    period = input(f"Please enter the borrowing period (in days) of the {action}:\n> ")
+    input_list = []
+    # TODO: Add validation for the input_list to ensure that the user enters valid data for each parameter. For example, if the parameter is an int, ensure that the user enters an int...
+    # Learned through AI. See GenAI Usage Log in the document for details.
+    for i in range(len(inspect.signature(media_type.__init__).parameters) - 4):      # Loop through the parameters of the media_type class's __init__ method so we can prompt the user for each parameter. Take out the first 4 parameters (self, author, title, period) as they are the default for all assets.
+        answer = input(f"Please enter the {list(inspect.signature(media_type.__init__).parameters)[i]} of the {action} or press enter to skip:\n> ")
+        input_list.append(answer)  # Add the answer to the input_list. This will be used to create the media_type object later. If the user presses enter, the answer will be an empty string, which will be converted to None when creating the media_type object.
+    if action.lower() == "book": library_assets[len(library_assets)] = Book(author, name, period, *input_list)  # Add the book to the library. The key is the length of the library_assets dictionary, which is the next available ISBN.
+    if action.lower() == "newspaper": library_assets[len(library_assets)] = Newspaper(author, name, period, *input_list)
+    if action.lower() == "music": library_assets[len(library_assets)] = Music(author, name, period, *input_list)
+    if action.lower() == "video": library_assets[len(library_assets)] = Video(author, name, period, *input_list)
+    if action.lower() == "course": library_assets[len(library_assets)] = Course(author, name, period, *input_list)
+    if action.lower() == "misc": library_assets[len(library_assets)] = Misc(author, name, period, *input_list)
 
 def remove_asset():
     """ Allows an admin to remove a book from the library. This function has no return value, but is part of the main login() loop.
