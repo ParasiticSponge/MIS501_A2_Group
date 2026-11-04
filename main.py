@@ -7,12 +7,12 @@
 """
 import os
 
-books = {}               # Create a dictionary to store the books in the library. Key = ISBN of book, and value = Book object. This allows faster lookup using the dictionary key rather than searching through a list of books.
+library_assets = {}      # Create a dictionary to store the assets in the library. Key = ISBN of asset, and value = asset object. This allows faster lookup using the dictionary key rather than searching through a list of books.
 users = []               # Create a list to store the users in the library. Each user is an object of the User class. This allows us to store multiple users and their borrowed books.
 date = "2026-10-22"      # This is a placeholder for the current date. In a real program, you would use the datetime module to get the current date.
 minTitleLength = 20      # This is the minimum length of the title string. It is used to format the output of the print_library_catalogue() function. If the title is shorter than this length, it will be padded with spaces to align the output.
 minAuthorLength = 35     # This is the minimum length of the author string. It serves the same purpose as minTitleLength, but for the author string.
-minMediaLength = 15
+minMediaLength = 10
 
 # ----------------------- Classes ------------------------
 
@@ -31,39 +31,47 @@ class User:
             self.contact = contact           # Contact can either be phone or email. First check if .isdigit(), if not it must be an email, then check if email is in valid format.
             self.password = password         # User's password.
 
-class Member(User):
-    def __init__(self, name, yob, contact, password):
-        super().__init__(name, yob, contact, password)  # Call the parent class constructor to initialize name, yob, contact, and password.
-        self.borrow_limit = 5                           # Members can borrow up to 5 books at a time.
-        self.borrowed = {}  
-    def borrow_book(self, isbn):
-        """ Allows a user to borrow a book. 
-            Arguments:
-                isbn: int - ISBN of the book to be borrowed
-            Returns: None
-        """
-        try: self.borrowed[isbn] = calculate_due_date(date, books[isbn].period)             # Calculate the due date of the book and store it in the user's borrowed books dictionary. Key = ISBN, and value = due date. Rather than storing the value as a period, where the library would have to calculate the due date each time, we can store the due date directly. This is more efficient, as the library can simply check if the due date has passed or not.
-        except KeyError: print(f"Book with ISBN {isbn} not found.")
-    def return_book(self, isbn):
-        """ Allows a user to return a book. 
-            Arguments: 
-                isbn: int - ISBN of the book to be returned
-            Returns: None
-        """
-        try: del self.borrowed[isbn]                                     # Check if the book is in the user's borrowed books dictionary. If so, Remove the book from the user's borrowed books dictionary.
-        except KeyError: print(f"You have not borrowed this book.")      # If the book is not in the user's borrowed books dictionary, print an error message.
-    def print_borrowed(self):
-        """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. 
+    def print_assets(self, place, view_isbn=False):
+        """ Prints all the books in the library collection. It prints the borrowing period rather than the due date, as the borrowing period is more useful to the library staff to calculate the due date for each user. 
             Arguments: None
             Returns: None
         """
-        for isbn in self.borrowed:                                                                          # For each key in the user's borrowed books (For each ISBN int)
-            # print(f"Media: {library_assets[isbn].__class__.__name__},{' ' * (minMediaLength - len(library_assets[isbn].__class__.__name__))}" +
-            #       f"Title: {library_assets[isbn].title},{' ' * (minTitleLength - len(library_assets[isbn].title))}" +         # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the borrowed dictionary value
-            #       f"Author: {library_assets[isbn].author},{' ' * (minAuthorLength - len(library_assets[isbn].author))}" + 
-            #       f"Due Date: {self.borrowed[isbn]}")
-            print(f"Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +         # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the borrowed dictionary value
-                  f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
+        for asset in place:
+            string_isbn = f"ISBN: {asset}, " if view_isbn else ""                                                    # If view_isbn is True, print the ISBN of the book. Otherwise, do not print the ISBN.
+            print(f"{string_isbn}Media: {type(place[asset]).__name__},{' ' * (minMediaLength - len(type(place[asset]).__name__))}"+
+                  f"Title: {place[asset].title},{' ' * (minTitleLength - len(place[asset].title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
+                  f"Author: {place[asset].author},{' ' * (minAuthorLength - len(place[asset].author))} Borrowing Period: {place[asset].period} days")
+
+class Member(User):
+    def __init__(self, name, yob, contact, password):
+        super().__init__(name, yob, contact, password)  # Call the parent class constructor to initialize name, yob, contact, and password.
+        self.borrow_limit = 5                           # Members can borrow up to 5 assets at a time.
+        self.borrowed = {}  
+    def borrow_book(self, isbn):
+        """ Allows a user to borrow an asset. 
+            Arguments:
+                isbn: int - ISBN of the asset to be borrowed
+            Returns: None
+        """
+        try: self.borrowed[isbn] = calculate_due_date(date, library_assets[isbn].period)             # Calculate the due date of the book and store it in the user's borrowed books dictionary. Key = ISBN, and value = due date. Rather than storing the value as a period, where the library would have to calculate the due date each time, we can store the due date directly. This is more efficient, as the library can simply check if the due date has passed or not.
+        except KeyError: print(f"Asset with ISBN {isbn} not found.")
+    def return_book(self, isbn):
+        """ Allows a user to return an asset. 
+            Arguments: 
+                isbn: int - ISBN of the asset to be returned
+            Returns: None
+        """
+        try: del self.borrowed[isbn]                                     # Check if the book is in the user's borrowed assets dictionary. If so, Remove the book from the user's borrowed books dictionary.
+        except KeyError: print(f"You have not borrowed this Asset.")     # If the book is not in the user's borrowed assets dictionary, print an error message.
+    def print_borrowed(self):
+        """ Prints all the assets a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. 
+            Arguments: None
+            Returns: None
+        """
+        for isbn in self.borrowed:                                                                          # For each key in the user's borrowed assets (For each ISBN int)
+            print(f"Media: {library_assets[isbn].__class__.__name__},{' ' * (minMediaLength - len(library_assets[isbn].__class__.__name__))}" +
+                  f"Title: {library_assets[isbn].title},{' ' * (minTitleLength - len(library_assets[isbn].title))}" +         # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the borrowed dictionary value
+                  f"Author: {library_assets[isbn].author},{' ' * (minAuthorLength - len(library_assets[isbn].author))}" + 
                   f"Due Date: {self.borrowed[isbn]}")
     def view_info(self):
         """ Prints the user's information. 
@@ -86,21 +94,20 @@ class Member(User):
 class Student(Member):
     def __init__(self, name, yob, contact, password):
         super().__init__(name, yob, contact, password)  # Call the parent class constructor to initialize name, yob, contact, and password.
-        self.borrow_limit = 8                           # Students can borrow up to 8 books at a time.
+        self.borrow_limit = 8                           # Students can borrow up to 8 assets at a time.
 
 # admin can use this line for printing all the users in the dictionary.
 # for user in users: print(f"Name: {user.name}, Year of Birth: {user.yob}, Contact: {user.contact}")          # Prints all the users in the library collection. It prints the user's name, year of birth, and contact information.
 
 # Add a bunch of book data to simulate pre-existing books in the library. They Key is the ISBN.
-books[0] = Book(0, "The Silver Eyes", "Scott Cawthon & Kira Breed Wrisley", 7)
-books[1] = Book(1, "Every Day", "David Levithan", 14)
-books[2] = Book(2, "M is for Monster", "Talia Dutton", 14)
-books[3] = Book(3, "Kill the Villainess", "Haegi", 27)
+library_assets[0] = Book(0, "The Silver Eyes", "Scott Cawthon & Kira Breed Wrisley", 7)
+library_assets[1] = Book(1, "Every Day", "David Levithan", 14)
+library_assets[2] = Book(2, "M is for Monster", "Talia Dutton", 14)
+library_assets[3] = Book(3, "Kill the Villainess", "Haegi", 27)
 author = "Stephen King"
-books[4] = Book(4, "The Shining", author, 14)
-books[5] = Book(5, "Pet Sematary", author, 7)
-books[6] = Book(6, "The Institute", author, 7)
-
+library_assets[4] = Book(4, "The Shining", author, 14)
+library_assets[5] = Book(5, "Pet Sematary", author, 7)
+library_assets[6] = Book(6, "The Institute", author, 7)
 # library_assets = {
 #     0: Book(),
 #     1: Book("J. R. R. Tolkien", "The Hobbit", 7, "blah blah blah", paperback=9780261103344, hardcover=9780261103283, digital=9780261103587),
@@ -177,13 +184,6 @@ def calculate_due_date(borrowDate, period):
             year += 1
     return f"{year}-{month:02d}-{day:02d}"              # Return the due date in the format YYYY-MM-DD. The :02d formats the month and day to be two digits with leading zeros if necessary.
 
-def print_library_catalogue():
-    """ Function that prints all the books in the library collection. """
-    clear_screen()                                                                                              # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
-    for book in books:
-        print(f"ISBN: {book}, Title: {books[book].title},{' ' * (minTitleLength - len(books[book].title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
-              f"Author: {books[book].author},{' ' * (minAuthorLength - len(books[book].author))} Borrowing Period: {books[book].period} days")
-
 def validate_user():
     pass
 
@@ -202,9 +202,9 @@ def login():
     # TODO Validation
     user = users[0]  # For testing purposes, we will use the first user in the list.
     while True:
-        clear_screen()                                    # clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
+        clear_screen()                                        # clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
         if type(user) == Member: 
-            option = user_menu()       # Show user menu if the user is a member.
+            option = user_menu()                              # Show user menu if the user is a member.
             if option == "1": borrow_asset(user)              # For testing purposes, we will use the first user in the list.
             elif option == "2": return_asset(user)            # For testing purposes, we will use the first user in the list.
             elif option == "3": 
@@ -212,20 +212,23 @@ def login():
                 user.print_borrowed()
                 input("Press enter to continue...")
             elif option == "4": 
-                print_library_catalogue()     # Print all the books in the library.
+                clear_screen()
+                user.print_assets(library_assets)             # Print all the assets in the library. view_isbn is False by default, so the ISBN will not be printed. This is more user-friendly for members, as they don't need to know the ISBN of the book to borrow it.
                 input("Press enter to continue...")
             elif option == "5":
                 clear_screen()
                 user.view_info()
                 input("Press enter to continue...")
-            elif option == "6": user_update_info(user)        # Update the user's information.
+            elif option == "6": user_update_info(user)              # Update the user's information.
         # else: 
-        #     option = admin_menu()                       # Show admin menu if the user is an admin.
-        #     if option == "1": add_asset()                      # For testing purposes, we will use the first user in the list.
-        #     elif option == "2": remove_asset()                 # For testing purposes, we will use the first user in the list.
-        #     elif option == "3": print_library_catalogue()      # Print all the books in the library.
-        #     elif option == "4": list_library_users()           # Print all the users in the library. TODO change argument so None is all users and if a user is passed, it will print that user's information only.
-        #     elif option == "5": delete_member()                # For testing purposes, we will use the first user in the list.
+        #     option = admin_menu()                                   # Show admin menu if the user is an admin.
+        #     if option == "1": add_asset()                           # For testing purposes, we will use the first user in the list.
+        #     elif option == "2": remove_asset()                      # For testing purposes, we will use the first user in the list.
+        #     elif option == "3":
+        #         clear_screen()
+        #         user.print_assets(library_assets, view_isbn=True)   # Print all the assets in the library with ISBNs.
+        #     elif option == "4": list_library_users()                # Print all the users in the library. TODO change argument so None is all users and if a user is passed, it will print that user's information only.
+        #     elif option == "5": delete_member()                     # For testing purposes, we will use the first user in the list.
         if option == "7":
             clear_screen()
             break
@@ -244,7 +247,7 @@ def borrow_asset(user):
         clear_screen()                                                                                                  # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
         found = check_asset("borrow")
         if found != None: 
-            if found[0][0] in user.borrowed: print(f"You have already borrowed {found[0][1]}.")            # Check if the user has already borrowed the book.
+            if found[0][0] in user.borrowed: print(f"You have already borrowed {found[0][1]}.")                         # Check if the user has already borrowed the book.
             else:
                 user.borrow_book(found[0][0])                                                                           # Call the borrow_book method from the User class.
                 input(f"Successfully borrowed {found[0][1]}. It is due on {user.borrowed[found[0][0]]}. Press enter to continue...\n")  # Print the title of the book and the due date.
@@ -279,16 +282,16 @@ def check_asset(decision):
     else:
         name = input(f"Please enter the title of the {action} you would like to {decision}:\n> ")
         media_type = Book if action.lower() == "book" else None                                                                        # Convert the input to lowercase to make it case-insensitive.
-        found = [(isbn, books[isbn].title) for isbn in books if name.lower() in books[isbn].title.lower() and isinstance(books[isbn], media_type)] # 
+        found = [(isbn, library_assets[isbn].title) for isbn in library_assets if name.lower() in library_assets[isbn].title.lower() and isinstance(library_assets[isbn], media_type)] # 
         if len(found) == 0: print(f"{action} with title '{name}' not found. Please try again.")                                        # If the list is empty, the book is not found, so print an error message.
         else: return found
 
 def alrdy_brrwd_msg(user, isbn):
     """ Checks if the user has already borrowed the book. If they have, tell them, otherwise, add the book to the user's borrowed books library. """
-    if isbn in user.borrowed: print(f"You have already borrowed {books[isbn].title}.")            # Check if the user has already borrowed the book.
+    if isbn in user.borrowed: print(f"You have already borrowed {library_assets[isbn].title}.")          # Check if the user has already borrowed the book.
     else:
-        user.borrow_book(isbn)                                                                    # Call the borrow_book method from the User class.
-        print(f"Successfully borrowed {books[isbn].title}. It is due on {user.borrowed[isbn]}.")  # Print the title of the book and the due date.
+        user.borrow_book(isbn)                                                                             # Call the borrow_book method from the User class.
+        print(f"Successfully borrowed {library_assets[isbn].title}. It is due on {user.borrowed[isbn]}.")  # Print the title of the book and the due date.
 
 def user_update_info(user):
     """ Allows a user to update their information. If a parameter is not provided, the existing value is kept. 
@@ -320,12 +323,12 @@ def remove_asset():
         Returns: None
     """
     while True:
-        clear_screen()                                                                                                  # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
+        clear_screen()                                                                       # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
         found = check_asset("remove")
         if found != None:
-            del books[found[0][0]]                                                                                      # Remove the book from the library.
-            input(f"Successfully removed {found[0][1]}. Press enter to continue...\n")                                  # Print the title of the book and a message to press enter to continue.
-        else: break                                                                                                     # Exit the loop and return back to caller (login() function).
+            del library_assets[found[0][0]]                                                  # Remove the book from the library.
+            input(f"Successfully removed {found[0][1]}. Press enter to continue...\n")       # Print the title of the book and a message to press enter to continue.
+        else: break                                                                          # Exit the loop and return back to caller (login() function).
 
 # -----------------------------------------------------------
 
