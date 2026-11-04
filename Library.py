@@ -6,7 +6,6 @@ minAuthorLength = 35                           # This is the minimum length of t
 
 def days_in_month(month, year=None):
     """ Returns an integer value of the number days in the given month. """
-    def days_in_month(month, year=None):
     days_in_months = [31,28,31,30,31,30,31,31,30,31,30,31]
     days = days_in_months[month-1]
     return days
