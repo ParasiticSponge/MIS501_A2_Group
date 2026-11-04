@@ -20,7 +20,7 @@ def calculate_due_date(borrowDate, period):
         period: Integer value of the borrowing period in days. """
     year, month, day = map(int, borrowDate.split("-"))  # Split the borrow date into year, month, and day. Convert them to integers.
     day += period                                       # Add the borrowing period to the day.
-    while day > days_in_month(month, year):               # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
+    while day > days_in_month(month, year):             # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
         day -= days_in_month(month, year)
         month += 1
         if month > 12:
@@ -44,15 +44,15 @@ class User:
             self.brrwd = {}
     def borrow_book(self, isbn):
         """ Allows a user to borrow a book. """
-        try: self.brrwd[isbn] = calculate_due_date(date, books[isbn].period)             # Calculate the due date of the book and store it in the user's borrowed books dictionary. Key = ISBN, and value = due date. Rather than storing the value as a period, where the library would have to calculate the due date each time, we can store the due date directly. This is more efficient, as the library can simply check if the due date has passed or not.
+        try: self.brrwd[isbn] = calculate_due_date(date, books[isbn].period)   # Calculate the due date of the book and store it in the user's borrowed books dictionary. Key = ISBN, and value = due date. Rather than storing the value as a period, where the library would have to calculate the due date each time, we can store the due date directly. This is more efficient, as the library can simply check if the due date has passed or not.
         except KeyError: print(f"Book with ISBN {isbn} not found.")
     def return_book(self, isbn):
         """ Allows a user to return a book. """
-        try: del self.brrwd[isbn]                 # Check if the book is in the user's borrowed books dictionary. If so, Remove the book from the user's borrowed books dictionary.
-        except KeyError: print(f"You have not borrowed this book.")            # If the book is not in the user's borrowed books dictionary, print an error message.
+        try: del self.brrwd[isbn]                                         # Check if the book is in the user's borrowed books dictionary. If so, Remove the book from the user's borrowed books dictionary.
+        except KeyError: print(f"You have not borrowed this book.")       # If the book is not in the user's borrowed books dictionary, print an error message.
     def print_user_book_list(self):
         """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """
-        for isbn in self.brrwd:                                     # For each key in the user's borrowed books (For each ISBN int)
+        for isbn in self.brrwd:                                                                                     # For each key in the user's borrowed books (For each ISBN int)
             print(f"ISBN: {isbn}, Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
                   f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
                   f"Due Date: {self.brrwd[isbn]}")

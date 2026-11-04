@@ -60,6 +60,12 @@ class Member(User):
             print(f"Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +         # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the borrowed dictionary value
                     f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
                     f"Due Date: {self.borrowed[isbn]}")
+    def view_info(self):
+        """ Prints the user's information. 
+            Arguments: None
+            Returns: None
+        """
+        print(f"Name: {self.name}\nYear of Birth: {self.yob}\nContact: {self.contact}")
     def update_info(self, name=None, yob=None, contact=None):
         """ Updates the user's information. If a parameter is not provided, the existing value is kept. 
             Arguments:
@@ -165,6 +171,7 @@ def calculate_due_date(borrowDate, period):
 
 def print_library_catalogue():
     """ Function that prints all the books in the library collection. """
+    clear_screen()                                                                                              # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
     for book in books:
         print(f"ISBN: {book}, Title: {books[book].title},{' ' * (minTitleLength - len(books[book].title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
               f"Author: {books[book].author},{' ' * (minAuthorLength - len(books[book].author))} Borrowing Period: {books[book].period} days")
@@ -192,58 +199,76 @@ def login():
     user = users[0]  # For testing purposes, we will use the first user in the list.
     while True:
         clear_screen()                                    # clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
-        if type(user) == Member: option = user_menu()     # Show user menu if the user is a member.
-        else: option = admin_menu()                       # Show admin menu if the user is an admin.
-        if option == "1": borrow_asset(user)              # For testing purposes, we will use the first user in the list.
-        elif option == "2": return_asset(user)            # For testing purposes, we will use the first user in the list.
-        elif option == "3": user.print_borrowed()
-        elif option == "4": print_library_catalogue()     # Print all the books in the library.
-        elif option == "5": break
-        else: print("Invalid option. Please try again.")
+        if type(user) == Member: 
+            option = user_menu()       # Show user menu if the user is a member.
+            if option == "1": borrow_asset(user)              # For testing purposes, we will use the first user in the list.
+            elif option == "2": return_asset(user)            # For testing purposes, we will use the first user in the list.
+            elif option == "3": 
+                clear_screen()
+                user.print_borrowed()
+                input("Press enter to continue...")
+            elif option == "4": 
+                print_library_catalogue()     # Print all the books in the library.
+                input("Press enter to continue...")
+            elif option == "5":
+                clear_screen()
+                user.view_info()
+                input("Press enter to continue...")
+            elif option == "6": user_update_info(user)        # Update the user's information.
+        # else: 
+        #     option = admin_menu()                       # Show admin menu if the user is an admin.
+        #     if option == "1": add_asset()                      # For testing purposes, we will use the first user in the list.
+        #     elif option == "2": remove_asset()                 # For testing purposes, we will use the first user in the list.
+        #     elif option == "3": print_library_catalogue()      # Print all the books in the library.
+        #     elif option == "4": list_library_users()           # Print all the users in the library. TODO change argument so None is all users and if a user is passed, it will print that user's information only.
+        #     elif option == "5": delete_member()                # For testing purposes, we will use the first user in the list.
+        if option == "7":
+            clear_screen()
+            break
 
 def borrow_asset(user):
     """
-    void borrow_asset(user)
     Allows a user to borrow a book. This function has no return value, but is part of the main login() loop.
-    Arguments :
-        user : User object
-    """
-    found = check_asset(user, "borrow")
-    if found != None: 
-        if found[0][0] in user.borrowed: print(f"You have already borrowed {books[found[0][0]].title}.")            # Check if the user has already borrowed the book.
-        else:
-            user.borrow_book(found[0][0])                                                                           # Call the borrow_book method from the User class.
-            print(f"Successfully borrowed {books[found[0][0]].title}. It is due on {user.borrowed[found[0][0]]}.")  # Print the title of the book and the due date.
-
-def return_asset(user):
-    """
-    void return_asset(user)
-    Allows a user to return a book. This function has no return value, but is part of the main login() loop.
-    Arguments :
-        user : User object
-    """
-    found = check_asset(user, "return")
-    if found != None: 
-        if found[0][0] not in user.borrowed: print(f"You have not borrowed {books[found[0][0]].title}.")  # Check if the user has the book.
-        else:
-            user.return_book(found[0][0])                                                                 # Call the return_book method from the User class.
-            print(f"Successfully returned {books[found[0][0]].title}.")
-
-def check_asset(user, decision):
-    """
-    tuple check_asset(user, decision)
-    Returns a tuple of the ISBN and title of the book if found, otherwise returns None. It also checks if the user has already borrowed the book. If they have, it tells them they have already borrowed it, otherwise it adds it to their borrowed books library.
-    Arguments :
-        user : User object
-        decision : str - either "borrow" or "return"
-    Returns   : tuple - (isbn, title) if found, None otherwise
+    Arguments:
+        user: User object
     """
     while True:
-        while True:
-            action = input(f"Please enter the type of media you would like to {decision} (book, newspaper, music, video, misc) or enter 'd' to finish:\n> ")
-            if action.lower() not in ("book", "newspaper", "music", "video", "misc", "d"): print("Invalid option. Please try again.")  # If the input is not a valid option, print an error message.
-            else: break                                                                                                                # If the input is valid, break out of the loop and continue with the rest of the function.
-        if action == "d": break                                                                                                        # Exit the loop and return back to caller (login() function).
+        clear_screen()                                                                                                  # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
+        found = check_asset("borrow")
+        if found != None: 
+            if found[0][0] in user.borrowed: print(f"You have already borrowed {books[found[0][0]].title}.")            # Check if the user has already borrowed the book.
+            else:
+                user.borrow_book(found[0][0])                                                                           # Call the borrow_book method from the User class.
+                input(f"Successfully borrowed {books[found[0][0]].title}. It is due on {user.borrowed[found[0][0]]}. Press enter to continue...\n")  # Print the title of the book and the due date.
+        else: break                                                                                                     # Exit the loop and return back to caller (login() function).
+
+def return_asset(user):
+    """ Allows a user to return a book. This function has no return value, but is part of the main login() loop.
+        Arguments:
+            user: User object
+    """
+    while True:
+        clear_screen()
+        found = check_asset("return")
+        if found != None: 
+            if found[0][0] not in user.borrowed: print(f"You have not borrowed {books[found[0][0]].title}.")  # Check if the user has the book.
+            else:
+                user.return_book(found[0][0])                                                                 # Call the return_book method from the User class.
+                input(f"Successfully returned {books[found[0][0]].title}. Press enter to continue...\n")      # Print the title of the book and a message to press enter to continue.
+        else: break                                                                                           # Exit the loop and return back to caller (login() function).
+
+def check_asset(decision):
+    """ Returns a tuple of the ISBN and title of the book if found, otherwise returns None. It also checks if the user has already borrowed the book. If they have, it tells them they have already borrowed it, otherwise it adds it to their borrowed books library.
+        Arguments:
+            decision: str - either "borrow" or "return"
+        Returns: tuple - (isbn, title) if found, None otherwise
+    """
+    while True:
+        action = input(f"Please enter the type of media you would like to {decision} (book, newspaper, music, video, misc) or enter 'd' to finish:\n> ")
+        if action.lower() not in ("book", "newspaper", "music", "video", "misc", "d"): print("Invalid option. Please try again.")  # If the input is not a valid option, print an error message.
+        else: break                                                                                                                # If the input is valid, break out of the loop and continue with the rest of the function.
+    if action == "d": return None                                                                                                  # If the user enters 'd', return None to indicate that they are finished.
+    else:
         name = input(f"Please enter the title of the {action} you would like to {decision}:\n> ")
         media_type = Book if action.lower() == "book" else None                                                                        # Convert the input to lowercase to make it case-insensitive.
         found = [(isbn, books[isbn].title) for isbn in books if name.lower() in books[isbn].title.lower() and isinstance(books[isbn], media_type)] # 
@@ -256,6 +281,19 @@ def alrdy_brrwd_msg(user, isbn):
     else:
         user.borrow_book(isbn)                                                                    # Call the borrow_book method from the User class.
         print(f"Successfully borrowed {books[isbn].title}. It is due on {user.borrowed[isbn]}.")  # Print the title of the book and the due date.
+
+def user_update_info(user):
+    """ Allows a user to update their information. If a parameter is not provided, the existing value is kept. 
+        Arguments:
+            user: User object
+        Returns: None
+    """
+    clear_screen()                                                                                 # Clear the screen everytime before the menu is displayed to keep the console clean and easy to read.
+    name = input("Please enter your new name (or press enter to keep your current name):\n> ")
+    yob = input("Please enter your new year of birth in the format YYYY (or press enter to keep your current year of birth):\n> ")
+    contact = input("Please enter your new contact information (phone or email) (or press enter to keep your current contact information):\n> ")
+    user.update_info(name=name if name else None, yob=yob if yob else None, contact=contact if contact else None)
+    input(f"Your information has been updated.\nName: {user.name}\nYear of Birth: {user.yob}\nContact: {user.contact}\nPress enter to continue...\n")  # Print a message to indicate that the user's information has been updated.
 
 # ----------------------------------------------------------
 
@@ -284,9 +322,11 @@ f"""
 ┃     Please select an option:    ┃
 ┃       1: Borrow                 ┃
 ┃       2: Return                 ┃
-┃       3. View Your Books        ┃
+┃       3. View Borrowed          ┃
 ┃       4. View Library Catalouge ┃
-┃       5: Back to Main Menu      ┃
+┃       5. View Information       ┃
+┃       6. Update Information     ┃
+┃       7: Log Out                ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
@@ -303,7 +343,8 @@ f"""
 ┃       3: View Library Catalogue ┃
 ┃       4: View User(s)           ┃
 ┃       5: Delete Member(s)       ┃
-┃       6: Back to Main Menu      ┃
+┃       6:                        ┃
+┃       7: Log Out                ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
@@ -317,11 +358,13 @@ def Goodbye():
 # ----------------------------------------------------------
 
 def main():
-    while True:  # Keep the program running until the user chooses to quit.
-        option = menu()  # Display the menu and get the user's choice.
+    clear_screen()                       # Clear the screen of the debugging information before the program starts. This keeps the console clean and easy to read.
+    while True:                          # Keep the program running until the user chooses to quit.
+        option = menu()                  # Display the menu and get the user's choice.
         if option == "1": login()
         elif option == "2": sign_up()
         elif option == "3":
+            clear_screen()
             Goodbye()
             break
         else: print("Invalid option. Please try again.")
