@@ -1,0 +1,17 @@
+Methods for class User()
+
+delete_user(username)
+(unnecessary for assessment2)
+
+change_user_access(username)
+Change user access level (unnecessary for assessment2)
+
+Methods for class Borrower()
+select_borrower()
+will need to create a borrower if Student Id not found
+
+
+Methods for class Book
+def print_overdue_report(self):   # Overdue book report across all students
+
+
