@@ -18,7 +18,7 @@ date = date.today                       # Use system date() from datetime module
 minTitleLength = 20                     # This is the minimum length of the title string. It is used to format the output of the print_library_catalogue() function. If the title is shorter than this length, it will be padded with spaces to align the output.
 minAuthorLength = 35                    # This is the minimum length of the author string. It serves the same purpose as minTitleLength, but for the author string.
 all_users = []
-user_books = []
+borrowed_books = []
 lib_catalogue = []
 
 # Functions
@@ -163,15 +163,24 @@ class Borrower():
         self.name = name                    # Student name
         self.stud_id = stud_id              # Student Id
         self.books_on_loan = 0                  # numnber of items student has on loan
-    
+        
     def __str__(self):
         f"""
                  Name : {self.name}
            Student ID : {self.stud_id}
         Books on loan : {self.books_on_loan}
         """
+    
+    """
+    obj select_borrower()
+    Prompts the user for the borrower's Student ID and returns the borrower as an object class Borrower
+    """
+    def select_borrower():
+        print("Selecting borrower")
+        pass
 
-class Books(Borrower):
+
+class Book(Borrower):
     # Self initialisation learned through W3schools: https://www.w3schools.com/python/python_class_init.asp
     def __init__(self, isbn, title, author, period=None):
         self.isbn = isbn                     # ISBN of book. This is a unique identifier for each book.
@@ -183,7 +192,9 @@ class Books(Borrower):
             self.period = period                 # Borrowing period for the book.
         self.borrowed = date
         self.due = calculate_due_date(date, self.period)
-        super().books.on.loan+=1
+        super().books_on_loan+=1
+        borrowed_books.append(self)
+
     
     def return_book(self, isbn):
         self.returned = date
@@ -211,6 +222,18 @@ class Books(Borrower):
 
 # Concepts we might add later...
 # \ escapes the newline character, so the string continues on the next line. Learned through CISCO Module 4.5.1
+'''
+
+'''
+def get_book_details():
+    isbn = input("Please enter the book ISBN : ")
+    if isbn == "": return False
+    title = input("Please enter the book name / title : ")
+    if title == "": return False
+    author = input("Please enter the author : ")
+    if author == "": return False
+    return True
+
 '''
 str get_user_name()
 Returns a valid name entered by the user or an empty string ""
@@ -317,19 +340,21 @@ while True:  # Keep the program running until the user chooses to quit.
         else:
             while True:
                 logged_user = User.get_user_obj(name)
-                print("Login : ",logged_user)
                 option = user_menu(logged_user.name)                                                                          # After validation, show the user menu.
-                if option == "1": 
-                    isbn = input("Please enter the book ISBN : ")
-                    title = input("Please enter the book name / title : ")
-                    author = input("Please enter the author : ")
-                    user_books = Book(isbn,title,author)                                                                  # For testing purposes, we will use the first user in the list.
-                elif option == "4": PrintLibraryBooks()                                                      # Print all the books in the library.
+                if option == "1":
+                    curr_borrower = Borrower.select_borrower()
+                    while True and curr_borrower!=None:
+                        if get_book_details():
+                            curr_book = Book(isbn, title, author, period=None)
+                        else:
+                            break
+                elif option == "4": print_library_catalogue()     # Print all the books in the library.
                 elif option == "5": break
                 else: print("Invalid option. Please try again.")
     elif option == "2":
-        super_user_option = super_user_menu()
+
         while True:
+            super_user_option = super_user_menu()
             if super_user_option == "1":
                 logged_user = User.create_user()        # create user
             elif super_user_option == "2":
@@ -337,8 +362,7 @@ while True:  # Keep the program running until the user chooses to quit.
             elif super_user_option == "3":
                 pass                                    # change user access
             elif super_user_option == "4": 
-                break
-            super_user_option = super_user_menu()
+                break                                   # return to main menu
     elif option == "3":
         User.list_library_users()
         Goodbye()
