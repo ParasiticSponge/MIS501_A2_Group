@@ -189,7 +189,7 @@ class Asset():
         self.paperback = paperback           # Paperback version available.
         self.hardcover = hardcover           # Hardcover version available.
         self.audio = audio                   # Audio version available.
-        self.digital = digital                 # Ebook version available.
+        self.digital = digital               # Ebook version available.
 
 lib_catalogue = [
     Asset("J. R. R. Tolkien", "The Hobbit", paperback=9780261103344, hardcover=9780261103283, digital=9780261103587),
@@ -204,10 +204,17 @@ all_users["1234"] = User("Example", staff_id="1234", access=5)
 def valid_book(isbn: str):
     if isbn.isdigit(): 
         isbn = int(isbn)
-        found = [book for book in lib_catalogue if book.paperback == isbn or book.hardcover == isbn or book.audio == isbn or book.digital == isbn]
+        found = [book for book in lib_catalogue if isbn in vars(book).values()] # checks if the isbn is in any of the parameter values
     elif isbn.isalpha(): found = [book for book in lib_catalogue if book.title == isbn]
-    try: return found[0]
-    except: return None
+    # try: 
+        # attributes = {value for attr, value in vars(found[0]).items() if value == isbn}  # loop through the parameters and values of the found book. By default all of it's ISBNs are active because it came from the library catalog. Only get the attribute if it matches the given ISBN.
+    attributes = [value if value == isbn else None for attr, value in vars(found[0]).items()][2:]
+    # print(attributes)
+    ass = Asset(found[0].author, found[0].title, *attributes)
+    # print(vars(ass).items())
+    return ass
+        # return Asset(found[0].author, found[0].title, **attributes)   # instead of returning the book from the catalog with all active ISBNs, return a new asset that only has the correct ISBN
+    # except: return None
 
 class Book(Borrower):
     # Self initialisation learned through W3schools: https://www.w3schools.com/python/python_class_init.asp
@@ -237,7 +244,7 @@ def print_borrower_book_list():
         """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """        
         for borrower in borrowed_books:                                     # For each key in the user's borrowed books (For each ISBN int)
             details = valid_book(borrower.isbn)                             # Get the book details for the ISBN
-            book_type, _ = [book_params for book_params in vars(details).items() if book_params != None][-1] # get the media type where the ISBN is valid and not None. Author and name auto are valid, so get last parameter. (also unpack it as first is param and second is value)
+            book_type = [param for param, value in vars(details).items() if value != None][-1] # get the media type where the ISBN is valid and not None. Author and name auto are valid, so get last parameter. (also unpack it as first is param and second is value)
             print(f"User: {borrower.name}, ID: {borrower.stud_id}, Type: {book_type},  " +
                   f"ISBN: {borrower.isbn}, Title: {details.title},{' ' * (minTitleLength - len(details.title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
                   f"Author: {details.author},{' ' * (minAuthorLength - len(details.author))}" + 
@@ -367,11 +374,11 @@ while True:  # Keep the program running until the user chooses to quit.
                     curr_borrower = Borrower.select_borrower()
                     while True and curr_borrower!=None:
                         isbn = input("Please enter the ISBN or Title of the book to borrow (or leave blank to exit): ")
+                        if isbn == "": break
                         details = valid_book(isbn)
                         if details is None:
                             print("Book doesn't exist")
                             break
-                        if isbn == "": break
                         period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
                         if period == "": period = None
                         borrowed_books.append(Book(curr_borrower.stud_id, curr_borrower.name, isbn, period))
