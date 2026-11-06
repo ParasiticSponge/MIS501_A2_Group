@@ -14,12 +14,12 @@ from datetime import date
 
 
 VALID_ISBN = "9780136019701"            # just for testing purposes
-date = date.today                       # Use system date() from datetime module for current date 
+today = date.today().isoformat()        # Use system date() from datetime module for current date. isoformat converts to string YYYY-MM-DD
 minTitleLength = 20                     # This is the minimum length of the title string. It is used to format the output of the print_library_catalogue() function. If the title is shorter than this length, it will be padded with spaces to align the output.
 minAuthorLength = 35                    # This is the minimum length of the author string. It serves the same purpose as minTitleLength, but for the author string.
-all_users = []
+all_users = {}
+all_borrowers = {}
 borrowed_books = []
-lib_catalogue = []
 
 # Functions
 '''
@@ -75,8 +75,8 @@ Returns         : str containing date calculated using loan period and borrow_da
 """
 def calculate_due_date(borrow_date, period):
     year, month, day = map(int, borrow_date.split("-"))  # Split the borrow date into year, month, and day. Convert them to integers.
-    day += period                                       # Add the borrowing period to the day.
-    while day > days_in_month(month, year):               # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
+    day += int(period)                                   # Add the borrowing period to the day.
+    while day > days_in_month(month, year):              # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
         day -= days_in_month(month, year)
         month += 1
         if month > 12:
@@ -87,12 +87,11 @@ def calculate_due_date(borrow_date, period):
 # Object defintions
 
 class User:
-
     def __init__(self, name, staff_id=None, access=0):
         self.name = name                 # User's name.
         self.staff_id = staff_id         # User's year of birth.
         self.access = access             # Staff access level: level 0 : adds and removes books : level 10 - Superuser (creates users)
-        all_users.append(self)
+        all_users[staff_id] = self
         
     def __str__(self):
         return f"""
@@ -127,11 +126,9 @@ class User:
                  : False if the name doesn't exist
     """
     def login_exists(name):
-        matching_object = next((obj for obj in all_users if obj.name == name), None)
-        if matching_object:
-            return True
-        else:
-            return False
+        matching_object = next((obj for obj in all_users.values() if obj.name == name), None)
+        if matching_object: return True
+        else: return False
 
     """ 
     obj login_exists(name)
@@ -143,7 +140,7 @@ class User:
                  : False if the name doesn't exist
     """
     def get_user_obj(name):
-        return next((obj for obj in all_users if obj.name == name), None)
+        return next((obj for obj in all_users.values() if obj.name == name), None)
 
 
     """ 
@@ -156,16 +153,17 @@ class User:
     """
     def list_library_users():
         """ Function that prints all the users in the library collection. """
-        for user in all_users: print(user)          # Prints all the users in the library collection. It prints the user's name, year of birth, and contact information.
+        for user in all_users.values(): print(user)          # Prints all the users in the library collection. It prints the user's name, year of birth, and contact information.
 
 class Borrower():
-    def __init__(self, name, stud_id):
+    def __init__(self, stud_id, name):
         self.name = name                    # Student name
         self.stud_id = stud_id              # Student Id
-        self.books_on_loan = 0                  # numnber of items student has on loan
-        
+        self.books_on_loan = 0              # numnber of items student has on loan
+        all_borrowers[stud_id] = self
+
     def __str__(self):
-        f"""
+        return f"""
                  Name : {self.name}
            Student ID : {self.stud_id}
         Books on loan : {self.books_on_loan}
@@ -176,63 +174,87 @@ class Borrower():
     Prompts the user for the borrower's Student ID and returns the borrower as an object class Borrower
     """
     def select_borrower():
-        print("Selecting borrower")
-        pass
+        input_stud_id = input("Please enter the Student ID of the borrower (or leave blank to exit): ")
+        if input_stud_id == "": return None 
+        if input_stud_id in all_borrowers: return all_borrowers[input_stud_id]  # return an existing borrower object if the student ID is already in the all_borrowers dictionary
+        else:
+            name = input("Please enter the name of the student: ")              # Prompt the user for the name of the student if the student ID is not already in the all_borrowers dictionary
+            print(f"Student {name} registered to database\n")
+            return Borrower(input_stud_id, name)
 
+class Asset():
+    def __init__(self, author, title, paperback=None, hardcover=None, audio=None, digital=None):
+        self.author = author                 # Author of book.
+        self.title = title                   # Title of book.
+        self.paperback = paperback           # Paperback version available.
+        self.hardcover = hardcover           # Hardcover version available.
+        self.audio = audio                   # Audio version available.
+        self.digital = digital                 # Ebook version available.
+
+lib_catalogue = [
+    Asset("J. R. R. Tolkien", "The Hobbit", paperback=9780261103344, hardcover=9780261103283, digital=9780261103587),
+    Asset("David Levithan", "Everyday", paperback=9780307931894, digital=9780307931111),
+    Asset("Talia Dutton", "M is for Monster", paperback=9781419751974),
+    Asset("Haegi", "Kill the Villainess", paperback=9798400902864),
+    Asset("Stephen King", "Pet Sematary", paperback=9781444708134, audio=9781473688582, digital=9781848940857),
+    Asset("Stephen King", "The Institute", paperback=9781529355413, audio=9781529355383, digital=9781529355420),
+    Asset("Stephen King", "The Shining", paperback=9781399765350) ]
+all_users["1234"] = User("Example", staff_id="1234", access=5)
+
+def valid_book(isbn: str):
+    if isbn.isdigit(): 
+        isbn = int(isbn)
+        found = [book for book in lib_catalogue if book.paperback == isbn or book.hardcover == isbn or book.audio == isbn or book.digital == isbn]
+    elif isbn.isalpha(): found = [book for book in lib_catalogue if book.title == isbn]
+    try: return found[0]
+    except: return None
 
 class Book(Borrower):
     # Self initialisation learned through W3schools: https://www.w3schools.com/python/python_class_init.asp
-    def __init__(self, isbn, title, author, period=None):
-        self.isbn = isbn                     # ISBN of book. This is a unique identifier for each book.
-        self.title = title                   # Title of book
-        self.author = author                 # Author of book. Can have multiple authors in the string.
-        if period is None:
-            self.period = 14
-        else:
-            self.period = period                 # Borrowing period for the book.
-        self.borrowed = date
-        self.due = calculate_due_date(date, self.period)
-        super().books_on_loan+=1
+    def __init__(self, stud_id, name, isbn, period=None):
+        super().__init__(stud_id, name)
+        self.isbn = isbn                           # ISBN of book. This is a unique identifier for each book.
+        if period is None: self.period = 14
+        else: self.period = period                 # Borrowing period for the book.
+        self.borrowed = today
+        self.due = calculate_due_date(today, self.period)
+        all_borrowers[stud_id].books_on_loan+=1
         borrowed_books.append(self)
 
-    
-    def return_book(self, isbn):
-        self.returned = date
-        super().books.on.loan-=1
+    def return_book(self):
+        self.returned = today
+        all_borrowers[self.stud_id].books_on_loan-=1
+        if all_borrowers[self.stud_id].books_on_loan == 0: del all_borrowers[self.stud_id]          # If the student has no more books on loan, remove them from the all_borrowers dictionary.
+        borrowed_books.remove(self)                      # Remove the book from the borrowed_books list. This is done to keep track of which books are currently borrowed and which are not.
         
-    def print_borrower_book_list(self):
-        """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """
-        for isbn in self.brrwd:                                     # For each key in the user's borrowed books (For each ISBN int)
-            print(f"ISBN: {isbn}, Title: {books[isbn].title},{' ' * (minTitleLength - len(books[isbn].title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
-                  f"Author: {books[isbn].author},{' ' * (minAuthorLength - len(books[isbn].author))}" + 
-                  f"Due Date: {self.brrwd[isbn]}")
-
     def is_overdue(self):
-        return (self.due > date)
+        return (self.due > today)
     
     def print_overdue_report(self):   # Overdue book report across all students
         pass
-    
-    def print_library_catalogue(self):
-        """ Function that prints all the books in the library collection. """
-        for book in books:
-            print(f"ISBN: {books[book].isbn}, Title: {books[book].title},{' ' * (minTitleLength - len(books[book].title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
-                  f"Author: {books[book].author},{' ' * (minAuthorLength - len(books[book].author))} Borrowing Period: {books[book].period} days")
 
+def print_borrower_book_list():
+        """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """        
+        for borrower in borrowed_books:                                     # For each key in the user's borrowed books (For each ISBN int)
+            details = valid_book(borrower.isbn)                             # Get the book details for the ISBN
+            book_type, _ = [book_params for book_params in vars(details).items() if book_params != None][-1] # get the media type where the ISBN is valid and not None. Author and name auto are valid, so get last parameter. (also unpack it as first is param and second is value)
+            print(f"User: {borrower.name}, ID: {borrower.stud_id}, Type: {book_type},  " +
+                  f"ISBN: {borrower.isbn}, Title: {details.title},{' ' * (minTitleLength - len(details.title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
+                  f"Author: {details.author},{' ' * (minAuthorLength - len(details.author))}" + 
+                  f"Due Date: {borrower.due}")    
+    
+def print_library_catalogue():
+        """ Function that prints all the books in the library collection. """
+        for book in lib_catalogue:
+            for name, value in vars(book).items():          # iterate through each attribute of the book object (title, author, paperback, hardcover, digital)
+                if name in ("title", "author"): continue    # skip author and title so it's just the media types
+                if value is not None:
+                    print(f"ISBN: {value}, Type: {name}," +
+                          f"Title: {book.title},{' ' * (minTitleLength - len(book.title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
+                          f"Author: {book.author},{' ' * (minAuthorLength - len(book.author))}")
 
 # Concepts we might add later...
 # \ escapes the newline character, so the string continues on the next line. Learned through CISCO Module 4.5.1
-'''
-
-'''
-def get_book_details():
-    isbn = input("Please enter the book ISBN : ")
-    if isbn == "": return False
-    title = input("Please enter the book name / title : ")
-    if title == "": return False
-    author = input("Please enter the author : ")
-    if author == "": return False
-    return True
 
 '''
 str get_user_name()
@@ -344,19 +366,27 @@ while True:  # Keep the program running until the user chooses to quit.
                 if option == "1":
                     curr_borrower = Borrower.select_borrower()
                     while True and curr_borrower!=None:
-                        if get_book_details():
-                            curr_book = Book(isbn, title, author, period=None)
-                        else:
+                        isbn = input("Please enter the ISBN or Title of the book to borrow (or leave blank to exit): ")
+                        details = valid_book(isbn)
+                        if details is None:
+                            print("Book doesn't exist")
                             break
+                        if isbn == "": break
+                        period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
+                        if period == "": period = None
+                        borrowed_books.append(Book(curr_borrower.stud_id, curr_borrower.name, isbn, period))
+                        print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name}")
+                elif option == "3": print_borrower_book_list()                                                                             # Create a new Book object and add it to the borrowed_books list.
                 elif option == "4": print_library_catalogue()     # Print all the books in the library.
                 elif option == "5": break
                 else: print("Invalid option. Please try again.")
+            clear_screen()
     elif option == "2":
-
         while True:
             super_user_option = super_user_menu()
             if super_user_option == "1":
                 logged_user = User.create_user()        # create user
+                all_users.append(logged_user)           # add user to all_users list
             elif super_user_option == "2":
                 pass                                    # delete user
             elif super_user_option == "3":
