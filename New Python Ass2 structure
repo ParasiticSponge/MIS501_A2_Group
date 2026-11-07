@@ -47,10 +47,10 @@ class User(Collection):
     def create_user(name=None):
         """ Allows a user to sign up for the library system. If users sign up, they should automatically be logged in. """
         if name == None:
-            name = input("Please enter your name: ")
-        staff_id = input("Please enter your Staff ID or Guest: ")
-        access = input("Please select staff access level : ")
-        logged_user = User(name, staff_id, access)
+            name = input("Please enter the user name: ")
+        staff_id = input("Please enter the Staff ID or Guest: ")
+        access = input("Please enter the staff access level [0 or 10 for supervisor]: ")
+        logged_user = User(staff_id, name, access)
         return logged_user
     
     """ 
@@ -68,13 +68,12 @@ class User(Collection):
         else: return False
 
     """ 
-    obj login_exists(name)
-    Returns boolean indicating if the name given exists already
+    obj get_user_obj(name)
+    Returns the user object for the specified name
     Arguments
         name     : str containing a user name
     Returns         
-        bool     : True if the name already exists
-                 : False if the name doesn't exist
+        bool     : User object
     """
     def get_user_obj(name):
         return next((obj for obj in all_users.values() if obj.name == name), None)
@@ -166,7 +165,7 @@ lib_catalogue = [
     Asset("Stephen King", "Pet Sematary", paperback=9781444708134, audio=9781473688582, digital=9781848940857),
     Asset("Stephen King", "The Institute", paperback=9781529355413, audio=9781529355383, digital=9781529355420),
     Asset("Stephen King", "The Shining", paperback=9781399765350) ]
-all_users["1234"] = User(staff_id="1234", name="Example", access=5)
+all_users["1234"] = User(staff_id="1234", name="Example", access=0)
 
 """ clear_screen()
     Clears the user console screen using the appropriate OS system clear screen commands
@@ -402,7 +401,7 @@ while True:  # Keep the program running until the user chooses to quit.
             super_user_option = super_user_menu()
             if super_user_option == "1":
                 logged_user = User.create_user()        # create user
-                all_users.append(logged_user)           # add user to all_users list
+#                all_users.append(logged_user)           # add user to all_users list
             elif super_user_option == "2":
                 pass                                    # delete user
             elif super_user_option == "3":
@@ -414,4 +413,3 @@ while True:  # Keep the program running until the user chooses to quit.
         Goodbye()
         break
     else: print("Invalid option. Please try again.")
-
