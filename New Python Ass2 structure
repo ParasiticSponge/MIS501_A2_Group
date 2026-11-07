@@ -214,8 +214,8 @@ Returns         : str containing date calculated using loan period and borrow_da
 """
 def calculate_due_date(borrow_date, period):
     year, month, day = map(int, borrow_date.split("-"))  # Split the borrow date into year, month, and day. Convert them to integers.
-    print(type(day),type(period))
-    day += period                                        # Add the borrowing period to the day.
+#    if period == None : period = 14
+    day += period                                         # Add the borrowing period to the day.
     while day > days_in_month(month, year):               # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
         day -= days_in_month(month, year)
         month += 1
@@ -228,7 +228,9 @@ def valid_book(isbn: str):
     if isbn.isdigit(): 
         isbn = int(isbn)
         found = [book for book in lib_catalogue if isbn in vars(book).values()] # checks if the isbn is in any of the parameter values
-    elif isbn.isalpha(): found = [book for book in lib_catalogue if book.title == isbn]
+    else:
+#        found = [book for book in lib_catalogue if book.title == isbn]
+        found = [book for book in lib_catalogue if isbn in vars(book).values()]
     try:
         attributes = [value if value == isbn else None for attr, value in vars(found[0]).items()][2:] # loop through the parameters and values of the found book. By default all of it's ISBNs are active because it came from the library catalog. Only get the attribute if it matches the given ISBN, otherwise set it to None
         return Asset(found[0].author, found[0].title, *attributes)
@@ -377,7 +379,8 @@ while True:  # Keep the program running until the user chooses to quit.
                             print("Book doesn't exist")
                             break
                         period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
-                        if period == "": period = None
+                        if period == "": period = None 
+                        else : period=int(period)
                         Book(curr_borrower.id, curr_borrower.name, isbn, period)
                         print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name}")
                 elif option == "2":
@@ -412,5 +415,7 @@ while True:  # Keep the program running until the user chooses to quit.
     elif option == "3":
         User.list_library_users()
         Goodbye()
+        
+        
         break
     else: print("Invalid option. Please try again.")
