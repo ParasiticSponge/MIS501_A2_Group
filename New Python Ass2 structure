@@ -33,7 +33,7 @@ class User(Collection):
     def __str__(self):
         return f"""
                     User name : {self.name}
-                     Staff ID : {self.staff_id}
+                     Staff ID : {self.id}
                  Access level : {self.access}
                 """
     """ 
@@ -214,7 +214,8 @@ Returns         : str containing date calculated using loan period and borrow_da
 """
 def calculate_due_date(borrow_date, period):
     year, month, day = map(int, borrow_date.split("-"))  # Split the borrow date into year, month, and day. Convert them to integers.
-    day += period                                       # Add the borrowing period to the day.
+    print(type(day),type(period))
+    day += period                                        # Add the borrowing period to the day.
     while day > days_in_month(month, year):               # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
         day -= days_in_month(month, year)
         month += 1
