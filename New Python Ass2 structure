@@ -229,7 +229,6 @@ def valid_book(isbn: str):
         isbn = int(isbn)
         found = [book for book in lib_catalogue if isbn in vars(book).values()] # checks if the isbn is in any of the parameter values
     else:
-#        found = [book for book in lib_catalogue if book.title == isbn]
         found = [book for book in lib_catalogue if isbn in vars(book).values()]
     try:
         attributes = [value if value == isbn else None for attr, value in vars(found[0]).items()][2:] # loop through the parameters and values of the found book. By default all of it's ISBNs are active because it came from the library catalog. Only get the attribute if it matches the given ISBN, otherwise set it to None
@@ -273,9 +272,9 @@ Returns     : str containing a valid name
             : empty str if nothing entered
 '''
 def get_user_name():
-    name = input("Please enter your name (or leave blank to exit) : ")
+    name = input("Please enter the user name (or leave blank to exit) : ")
     while not validate_str(name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ -"):
-        name = input("Please enter your name (or leave blank to exit) : ")
+        name = input("Please enter the uswer name (or leave blank to exit) : ")
     return str(name)
      
 '''
@@ -385,17 +384,19 @@ while True:  # Keep the program running until the user chooses to quit.
                         print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name}")
                 elif option == "2":
                     curr_returner = Borrower.select_borrower()
-                    if curr_returner is None: print("User has no books to return")
-                    while True and curr_borrower!=None:
-                        isbn = input("Please enter the ISBN or Title of the book to return (or leave blank to exit): ")
-                        if isbn == "": break
-                        book = book_by_stud(curr_returner.id, isbn)
-                        if book is None:
-                            print("Book doesn't exist")
-                            break
-                        else: 
-                            book.return_book()
-                            print("Successfully returned book")
+                    if curr_returner.books_on_loan==0 : 
+                        print("User has no books to return")
+                    else:
+                        while True and curr_returner!=None:
+                            isbn = input("Please enter the ISBN or Title of the book to return (or leave blank to exit): ")
+                            if isbn == "": break
+                            book = book_by_stud(curr_returner.id, isbn)
+                            if book is None:
+                                print("Book doesn't exist")
+                                break
+                            else: 
+                                book.return_book()
+                                print("Successfully returned book")
                 elif option == "3": print_borrower_book_list(borrowed_books)                                                                             # Create a new Book object and add it to the borrowed_books list.
                 elif option == "4": print_library_catalogue()     # Print all the books in the library.
                 elif option == "5": break
