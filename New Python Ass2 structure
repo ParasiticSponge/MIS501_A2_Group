@@ -224,16 +224,25 @@ def calculate_due_date(borrow_date, period):
             year += 1
     return f"{year}-{month:02d}-{day:02d}"             # Return the due date in the format YYYY-MM-DD. The :02d formats the month and day to be two digits with leading zeros if necessary.
 
-def valid_book(isbn: str):
-    if isbn.isdigit(): 
-        isbn = int(isbn)
-        found = [book for book in lib_catalogue if isbn in vars(book).values()] # checks if the isbn is in any of the parameter values
-    else:
-        found = [book for book in lib_catalogue if isbn in vars(book).values()]
-    try:
+def valid_book(isbn):
+    if type(isbn) == str:                    # only check digit if input is string
+        if isbn.isdigit() and len(isbn) >= 10: isbn = int(isbn)  # convert digits string to integer only if the input is a valid ISBN
+    found = [book for book in lib_catalogue if isbn in vars(book).values()] # checks if the isbn is in any of the parameter values
+    if len(found) == 0: return None
+    if type(isbn) == int:                    # only works if isbn is number
         attributes = [value if value == isbn else None for attr, value in vars(found[0]).items()][2:] # loop through the parameters and values of the found book. By default all of it's ISBNs are active because it came from the library catalog. Only get the attribute if it matches the given ISBN, otherwise set it to None
+        if len(attributes) == 0:
+            print("Book of that format doesn't exist.")
+            return None
         return Asset(found[0].author, found[0].title, *attributes)
-    except: return None
+    else:
+        while True:
+            media = input("Please enter the media type of the item to be borrowed (paperback, hardcover, audio, digital): ").lower()  # remove case sensitivity
+            if media in ("paperback", "hardcover", "audio", "digital"): break
+            else: print("Invalid media type. Please try again.")
+        asset_media = vars(found[0])[media]
+        if asset_media is None: return None       # return none if format doesn't exist
+        return Asset(found[0].author, found[0].title, asset_media) # get the value of the parameter in the object's inbuilt self dictionary that matches the input media type.
 
 def book_by_stud(stud_id, isbn):
     for book in borrowed_books:
@@ -380,7 +389,13 @@ while True:  # Keep the program running until the user chooses to quit.
                         period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
                         if period == "": period = None 
                         else : period=int(period)
-                        Book(curr_borrower.id, curr_borrower.name, isbn, period)
+                        # can only add isbn in this context if it's an integer
+                        if isbn.isdigit(): Book(curr_borrower.id, curr_borrower.name, isbn, period)
+                        else: 
+                            # next() is a generator that doesn't need to store all the values from a list, but evaluates an expression for each item. The list in this case is all the values in a list version of the parameter values (skipping first two as they are author and title), and the expression checks if they're not None.
+                            # this is because we want to see which one from paperback, hardcover, audio etc is not None
+                            selected = result = next((x for x in list(vars(details).values())[2:] if x is not None), None)
+                            Book(curr_borrower.id, curr_borrower.name, selected, period)
                         print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name}")
                 elif option == "2":
                     curr_returner = Borrower.select_borrower()
