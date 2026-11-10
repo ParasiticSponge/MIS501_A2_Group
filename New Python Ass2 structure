@@ -223,39 +223,6 @@ def borrow_exists(is_isbn_int, found, media=None, isbn=None):
         catalogue_book = [book for book in lib_catalogue if book.title == isbn][0] # Get the book in the catalog whose title matches the one given, so we can find ISBNs. Don't need to check if empty since it exists in user library but edge cases where books removed from the system following discontinual, but users still need to be able to return them
         found2 = [book for book in found if book.isbn == vars(catalogue_book)[media]]  # find the book inside (in the list of books with matching titles) whose isbn matches the isbn of the specified media type in the catalog
         return None if len(found2) == 0 else found2[0]
-    
-# def valid_book(isbn, location):
-#     isbn = convert_isbn(isbn)
-#     found = [book for book in location if isbn in vars(book).values()] # checks if the input isbn or title is in any of the parameter values
-#     if len(found) == 0: return None
-#     if type(isbn) == int:                                              # only works if isbn is number
-#         attributes = [value if value == isbn else None for attr, value in vars(found[0]).items()][2:] # loop through the parameters and values of the found book (exclude author and title by using list slicing so we get paperback, hardcover etc). By default all of it's ISBNs are active because it came from the library catalog. Only get the attribute if it matches the given ISBN, otherwise set it to None
-#         if sum(attributes) == 0: return None   # if all values are False (False has an int value of 0, so sum of all will = 0)
-#         return Asset(found[0].author, found[0].title, *attributes)     # * sign is a list of arguments. Set the parameters to the values in the the attributes list. This means only one type of media will have it's ISBN active.
-#     else:
-#         while True:
-#             media = input(f"Please enter the media type of the item to be borrowed (paperback, hardcover, audio, digital): ").lower()  # remove case sensitivity
-#             if media in ("paperback", "hardcover", "audio", "digital"): break
-#             else: print("Invalid media type. Please try again.")
-#         asset_media = vars(found[0])[media]
-#         if asset_media is None: return None                           # return none if format doesn't exist
-#         # COULD also return the ISBN with the Asset object in a tuple, seems redundant but it saves having to sift through the object's parameters later when checking which media type has the valid ISBN
-#         return Asset(found[0].author, found[0].title, asset_media)    # get the value of the parameter in the object's inbuilt self dictionary that matches the input media type.
-# def book_by_stud(stud_id, isbn):
-#     users_books = [book for book in borrowed_books if book.id == stud_id]
-#     isbn = convert_isbn(isbn)                   # convert to int if valid ISBN, otherwise leave as string
-#     if type(isbn) != int:
-#         # get a list of the isbns if the name matches one in the catalog
-#         found = [book for book in lib_catalogue if isbn in vars(book).values()]  # return the book that matches the title
-#         if len(found) == 0: return None                                          # return None if there are no matches
-#         while True:                                                              # if title, must get media type
-#             media = input(f"Please enter the media type of the item to be returned (paperback, hardcover, audio, digital): ").lower()  # remove case sensitivity
-#             if media in ("paperback", "hardcover", "audio", "digital"): break
-#             else: print("Invalid media type. Please try again.")
-#         isbn = vars(found[0])[media]                                             # get the ISBN associated with the media type
-#     found = [book for book in users_books if book.isbn == isbn]                  # find the book based on ISBN
-#     if len(found) == 0: return None
-#     else: return found[0]
 
 def print_borrower_book_list(borrowed_books):
         """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """        
