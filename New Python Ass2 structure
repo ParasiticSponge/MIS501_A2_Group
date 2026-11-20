@@ -8,8 +8,13 @@
             Peter Poli - A00234611 
       Samantha Stevens - A00054394
 """
-import os
-from datetime import date
+from time import sleep
+import os                               # import OS library to all for cls()
+import csv                              # import Pythin csv function library
+from datetime import date               # import system date method from datetime library
+from pathlib import Path                # import file Path object for basic O/S file control
+import pandas as pd                     # Import Pandas library for analytics
+
 USERCSVFILE = "User.csv"
 ASSETCSVFILE = "Asset.csv"
 
@@ -415,59 +420,68 @@ def menu():
     clear_screen()
     option =input(
 f"""
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  Welcome to the Library System  ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃     Please select an option:    ┃
-┃        1: Log In                ┃
-┃        2: User Administration   ┃
-┃        3: Exit                  ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+\t\t┃  Welcome to the Library System  ┃
+\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+\t\t┃     Please select an option:    ┃
+\t\t┃        1: Log In                ┃
+\t\t┃        2: User Administration   ┃
+\t\t┃        3: Exit                  ┃
+\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
 
-
+"""
+Displays the User Administration menu and returns the user choice
+Arguments : N/A
+Returns   : str containing the user's selection
+"""
 def super_user_menu():
     option = input(
 f"""
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃          LMS User Menu          ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃     Please select an option:    ┃
-┃        1: Create user           ┃
-┃        2: Delete user           ┃
-┃        3: Show all users        ┃
-┃        4: Change user access    ┃
-┃        5: Return to main menu   ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+\t\t┃          LMS User Menu          ┃
+\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+\t\t┃     Please select an option:    ┃
+\t\t┃        1: Create user           ┃
+\t\t┃        2: Delete user           ┃
+\t\t┃        3: Show all users        ┃
+\t\t┃        4: Change user access    ┃
+\t\t┃        5: Return to main menu   ┃
+\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
     
-def user_menu():
+"""
+Displays the LMS Users menu and returns the user choice
+Arguments : N/A
+Returns   : str containing the user's selection
+"""
+
+def user_menu(name):
     option = input(
 f"""
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃   Library Management System     ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃   Please select an option:      ┃
-┃       1: Enter borrowed items   ┃
-┃       2: Return borrowed items  ┃
-┃       3. View Student Books     ┃
-┃       4. View Library Catalouge ┃
-┃       5: Back to Main Menu      ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+\t\t┃   Library Management System     ┃
+\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+\t\t┃   Please select an option:      ┃
+\t\t┃    1: Enter borrowed items      ┃
+\t\t┃    2: Return borrowed items     ┃
+\t\t┃    3. View Student Books        ┃
+\t\t┃    4. View Library Catalouge    ┃
+\t\t┃    5: Back to Main Menu         ┃
+\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
 
 def Goodbye():
     print("""
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃     Thank you for using the     ┃
-┃    Library Management System    ┃
-┃           Goodbye!              ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+\t\t┃     Thank you for using the     ┃
+\t\t┃    Library Management System    ┃
+\t\t┃           Goodbye!              ┃
+\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
     """)
-
 # --------------------------------------------
 logged_user=None
 if load_csv_files():                            # if CSV files loaded then continue
@@ -517,12 +531,19 @@ if load_csv_files():                            # if CSV files loaded then conti
             while True:
                 if logged_user == None:
                     name = get_user_name().title()
-                    if not User.login_exists(name):
-                        if len(name):
-                            print(f"Name not found...please contact your supervisor for user account creation")
+                    if name == "": 
+                        print("User name not entered")
+                        sleep(2)
                         break
-                    else:
+                    if User.login_exists(name):
                         logged_user = User.get_user_obj(name)
+                        if logged_user.access != "10":
+                            print("Insufficient access rights to enter User Administration area")
+                            sleep(2)
+                            break
+                        else:
+                            logged_user = User.get_user_obj(name)
+                            print("logged user",logged_user)
                 if logged_user.access != "10":
                     print("Insufficient access rights to enter User Administration area")
                     break
@@ -530,7 +551,7 @@ if load_csv_files():                            # if CSV files loaded then conti
                 if super_user_option == "1":
                     logged_user = User.create_User()        # create user
                 elif super_user_option == "2":
-                    User.delete_User()                     # delete a user
+                    User.delete_User()                                   # delete user - not implemented
                 elif super_user_option == "3":
                     User.list_library_users()              # show all users
                 elif super_user_option == "4": 
