@@ -193,7 +193,7 @@ class Book(Borrower):
         all_borrowers[self.id].books_on_loan-=1
         if all_borrowers[self.id].books_on_loan == 0: del all_borrowers[self.id]          # If the student has no more books on loan, remove them from the all_borrowers dictionary.
         borrowed_books.remove(self)                      # Remove the book from the borrowed_books list. This is done to keep track of which books are currently borrowed and which are not.
-        
+
     """
     bool is_overdue(Book)
     Returns a boolean flag to indicate if the book object is overdue
@@ -211,6 +211,8 @@ class Asset():                                          # library cataliogue ass
         self.hardcover = hardcover           # Hardcover version available.
         self.audio = audio                   # Audio version available.
         self.digital = digital               # Ebook version available.
+
+        
 
 # ---------------------------------------------------------
 """
@@ -615,6 +617,22 @@ f"""
 """)
     return option
 
+def report_menu(name):
+    option = input(
+f"""
+\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+\t\t┃      LMS Reports & Grpahs       ┃
+\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+\t\t┃   Please select an option:      ┃
+\t\t┃    1: Overdue items             ┃
+\t\t┃    2: Books borrowed report     ┃
+\t\t┃    3. Books borrowed graph      ┃
+\t\t┃    4. Books not borrowed        ┃
+\t\t┃    5: Back to Main Menu         ┃
+\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+""")
+    return option
+
 def Goodbye():
     print("""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -658,7 +676,7 @@ if load_csv_files():                            # if CSV files loaded then conti
                             print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name}")
                     elif option == "2":
                         curr_returner = Borrower.id_returning()
-                        if curr_returner == False: print("User doesn't exist")
+                        if curr_returner == False: print("Borrower doesn't exist")
                         elif curr_returner != None:
                             location = [book for book in borrowed_books if book.id == curr_returner.id]    # get all the books under the user
                             while curr_returner.books_on_loan > 0:        # could also use above location to check list length
@@ -673,8 +691,23 @@ if load_csv_files():                            # if CSV files loaded then conti
                             else: print("User has no books to return")
                     elif option == "3": print_borrower_book_list(borrowed_books)                                                                             # Create a new Book object and add it to the borrowed_books list.
                     elif option == "4": print_library_catalogue()     # Print all the books in the library.
-                    elif option == "5": break                         # Reporting menu
+                    elif option == "5": 
+                        option = report_menu(User.get_user_obj(name))
+                        while True:
+                            if option=="1":
+                                break
+                            elif option=="2":
+                                break
+                            elif option=="3":
+                                break
+                            elif option=="4":
+                                break
+                            elif option=="5":
+                                break
+                            else:
+                                option = report_menu(User.get_user_obj(name))
                     elif option == "6": break
+
                     else: 
                         print("Invalid option. Please try again.")
                         sleep(2)
@@ -688,12 +721,6 @@ if load_csv_files():                            # if CSV files loaded then conti
                         break
                     if User.login_exists(name):
                         logged_user = User.get_user_obj(name)
-#                        if logged_user.access != "10":
-#                            print("Insufficient access rights to enter User Administration area")
-#                            sleep(2)
-#                            break
-#                        else:
-#                            logged_user = User.get_user_obj(name)
                 if logged_user.access != "10":
                     print("Insufficient access rights to enter User Administration area")
                     sleep(2)
