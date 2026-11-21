@@ -244,6 +244,27 @@ def load_User(csv_fname):
         print("An error occurred while attempting to open the file",USERCSVFILE)
     return True
 
+def dump_Assets(csv_fname):
+    all_asset_rows = lib_assets
+    try:
+        file_handle = open(csv_fname,"w",encoding="utf-8")       # create empty file
+        file_handle.write("author,title,paperback,hardcover,audio,digital\n")
+    except:
+        print("An error occurred while attempting to open the file",csv_fname)
+        return False
+    for rows in all_asset_rows:
+        author = rows.author                 # Author of book.
+        title = rows.title                   # Title of book.
+        paperback=rows.paperback             # Paperback version available.
+        hardcover = rows.hardcover           # Hardcover version available.
+        audio = rows.audio                   # Audio version available.
+        digital = rows.digital               # Ebook version available.
+
+        csv_row = author+","+title+","+str(paperback)+","+str(hardcover)+","+str(audio)+","+str(digital)+"\n"
+        file_handle.write(csv_row)
+
+    file_handle.close()
+
 def dump_User(csv_fname):
     all_user_rows = list(all_users.values())
     try: 
@@ -559,8 +580,11 @@ if load_csv_files():                            # if CSV files loaded then conti
                     break                                   # change user access  - not implemented
                 elif super_user_option == "5":
                     break                                  # return to main menu
-         elif option == "3":
-            User.list_library_users()
+        elif option == "3":
+            dump_User(USERCSVFILE)
+            dump_Assets(ASSETSCSVFILE)
             Goodbye()
             break
         else: print("Invalid option. Please try again.")
+else:
+    print("Data files not found - Exiting program")    
