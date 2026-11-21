@@ -29,10 +29,10 @@ all_borrowers = {}                      # Stores all the borrowers
 borrowed_books = []                     # stores borrowed books information for each user
 
 # ------------ Object defintions ---------------------
-class Collection:
+class Collection:                       # Users and borrowers names super class
     def __init__(self, id, name):
         self.id = id
-        self.name = name                 # User's name.
+        self.name = name                 # User and borrowers names.
 
 class User(Collection):                 # User subclass of collection
     
@@ -129,7 +129,7 @@ class User(Collection):                 # User subclass of collection
     def list_library_users():
         for user in all_users.values(): print(user)          # Prints all the users in the library collection. It prints the user's name, year of birth, and contact information.
 
-class Borrower(Collection):
+class Borrower(Collection):                 # Borrowers names and ids
     def __init__(self, id, name):
         super().__init__(id, name)
         self.books_on_loan = 0              # numnber of items student has on loan
@@ -157,12 +157,12 @@ class Borrower(Collection):
         return inner
     @select_borrower
     def id_borrowing(input_stud_id):
-        name = input("Please enter the name of the student: ").title()         # Prompt the user for the name of the student if the student ID is not already in the all_borrowers dictionary
+        name = input("Please enter the name of the student: ").title()              # Prompt the user for the name of the student if the student ID is not already in the all_borrowers dictionary
         print(f"Student {name} registered to database\n")
         return Borrower(input_stud_id, name)
     @select_borrower
     def id_returning(input_stud_id): return None if len(input_stud_id.strip()) == 0 else False  # empty strings return None whilst other IDs are invalid
-
+  
 class Book(Borrower):
     """
     __init__()
@@ -193,7 +193,7 @@ class Book(Borrower):
         all_borrowers[self.id].books_on_loan-=1
         if all_borrowers[self.id].books_on_loan == 0: del all_borrowers[self.id]          # If the student has no more books on loan, remove them from the all_borrowers dictionary.
         borrowed_books.remove(self)                      # Remove the book from the borrowed_books list. This is done to keep track of which books are currently borrowed and which are not.
-
+        
     """
     bool is_overdue(Book)
     Returns a boolean flag to indicate if the book object is overdue
@@ -202,7 +202,8 @@ class Book(Borrower):
     """
     def is_overdue(self): return (self.due > today)
 
-class Asset():
+
+class Asset():                                          # library cataliogue asset object
     def __init__(self, author, title, paperback=None, hardcover=None, audio=None, digital=None):
         self.author = author                 # Author of book.
         self.title = title                   # Title of book.
@@ -210,7 +211,6 @@ class Asset():
         self.hardcover = hardcover           # Hardcover version available.
         self.audio = audio                   # Audio version available.
         self.digital = digital               # Ebook version available.
-
 
 # ---------------------------------------------------------
 """
@@ -292,7 +292,7 @@ def dump_Assets(csv_fname):
         file_handle.write(csv_row)
 
     file_handle.close()
-
+        
 def dump_Borrower(csv_fname):
     all_borrower_rows = all_borrowers
     try: 
@@ -310,11 +310,11 @@ def dump_Borrower(csv_fname):
 
     file_handle.close()
     return True
-
+        
 def dump_User(csv_fname):
     all_user_rows = list(all_users.values())
     try: 
-        file_handle = open(USERCSVFILE,"w",encoding="utf-8")       # create empty file
+        file_handle = open(csv_fname,"w",encoding="utf-8")       # create empty file
         file_handle.write("id,name,access\n")
     except:
         print("An error occurred while attempting to open the file",csv_fname)
@@ -398,7 +398,7 @@ def calculate_due_date(borrow_date, period):
     while day > days_in_month(month, year):               # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
         day -= days_in_month(month, year)
         month += 1
-        if month > 12:
+        if month > 12:                                  # month is in following calendar year so set to January and increase year by 1
             month = 1
             year += 1
     return f"{year}-{month:02d}-{day:02d}"             # Return the due date in the format YYYY-MM-DD. The :02d formats the month and day to be two digits with leading zeros if necessary.
@@ -473,53 +473,83 @@ def borrow_exists(is_isbn_int, found, media=None, isbn=None):
         found2 = [book for book in found if book.isbn == vars(catalogue_book)[media]]  # find the book inside (in the list of books with matching titles) whose isbn matches the isbn of the specified media type in the catalog
         return None if len(found2) == 0 else found2[0]
 
+""" 
+print_borrower_book_list(borrowed_books)
+Prints all the books borrowed. It prints the due date rather than the days left, as the due date is more useful to the user
+Arguments   : borrowed_books - dictionary list of borrowed books
+Returns     : N/A
+
+"""  
 def print_borrower_book_list(borrowed_books):
-        """ Prints all the books a user has borrowed. It prints the due date rather than the days left, as the due date is more useful to the user. """        
-        for borrower in borrowed_books:                                     # For each key in the user's borrowed books (For each ISBN int)
-            details = valid_book(borrower.isbn)                             # Get the book details for the ISBN
-            book_type = [param for param, value in vars(details).items() if value != False][-1] # get the media type where the ISBN is valid and not None. Author and name auto are valid, so get last parameter. (also unpack it as first is param and second is value)
-            print(f"Borrower : {borrower.name} ID: {borrower.id} Type: {book_type}  " +
-                  f"ISBN: {borrower.isbn} Title: {details.title} {' ' * (minTitleLength - len(details.title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
-                  f"Author: {details.author} {' ' * (minAuthorLength - len(details.author))}" + 
-                  f"Due Date: {borrower.due}")    
+              
+    for borrower in borrowed_books:                                     # For each key in the user's borrowed books (For each ISBN int)
+        details = valid_book(borrower.isbn)                             # Get the book details for the ISBN
+        book_type = [param for param, value in vars(details).items() if value != None][-1] # get the media type where the ISBN is valid and not None. Author and name auto are valid, so get last parameter. (also unpack it as first is param and second is value)
+        print(f"Borrower : {borrower.name} ID: {borrower.id} Type: {book_type}  " +
+              f"ISBN: {borrower.isbn} Title: {details.title} {' ' * (minTitleLength - len(details.title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
+              f"Author: {details.author} {' ' * (minAuthorLength - len(details.author))}" + 
+              f"Due Date: {borrower.due}")    
     
+""" 
+print_library_catalogue()
+Prints all assets in the Library Catalogue
+Arguments   : N/A
+Returns     : N/A
+
+"""  
 def print_library_catalogue():
         """ Function that prints all the books in the library collection. """
-        for book in lib_catalogue:
+        for book in lib_assets:
             for name, value in vars(book).items():          # iterate through each attribute of the book object (title, author, paperback, hardcover, digital)
                 if name in ("title", "author"): continue    # skip author and title so it's just the media types
-                if value is not None:                       # if the ISBN is active
-                    print(f"ISBN: {value}, " + 
-                          f"Type: {name},{' ' * (minMediaLength - len(name))}" +
+                if value is not None:
+                    print(f"ISBN: {value}, Type: {name}," +
                           f"Title: {book.title},{' ' * (minTitleLength - len(book.title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
                           f"Author: {book.author},{' ' * (minAuthorLength - len(book.author))}")
 
+""" 
+print_overdue_report()
+Prints all overdue books borrowed
+Arguments   : N/A
+Returns     : N/A
+
+"""  
 def print_overdue_report():   # Overdue book report across all students
-    overdue = (book for book in borrowed_books if book.is_overdue())        # get a list of books only if they are overdue
+    overdue = [book for book in borrowed_books if book.is_overdue()]        # get a list of books only if they are overdue
     print_borrower_book_list(overdue)                                       # print them out
 
-''' Returns a valid name entered by the user or an empty string ""
-    Returns     : str containing a valid name
-                : empty str if nothing entered
+'''
+str get_user_name()
+Returns a valid name entered by the user or an empty string ""
+
+Returns     : str containing a valid name
+            : empty str if nothing entered
 '''
 def get_user_name():
-    while True:
-        name = input("Please enter the user name (or leave blank to exit) : ")
-        if validate_str(name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ -"): break
-    return name
+    name = input("Please enter the user name (or leave blank to exit) : ").title()
+    while not validate_str(name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ -"):
+        print("User name can only contain alpha characters and spaces - please try again")
+        name = input("Please enter the user name (or leave blank to exit) : ").title()
+    return str(name.strip())
      
-''' Accepts two argmuments; the first specifies the string to be validated and the second a string containing the characters allowed in the first.
-        Arguments   : string - str which is the string to be validated
-                    : valid_chars - str containing all the characters allowed in the string
-        Returns     : bool True for a valid string or False for an invalid string
+'''
+bool validate_str()
+Returns a boolean value of True for a valid string and False for an invalid string
+Accepts two argmuments; the first specifies the string to be validated and the second 
+a string containing the characters allowed in the first.
+Arguments   : string - str which is the string to be validated
+            : valid_chars - str containing all the characters allowed in the string
+
+Returns     : True for a valid string
+            : False for an invalid string
+
 '''
 def validate_str(string, valid_chars):
     try: return next((False for char in string if char.upper() not in valid_chars))
     except: return True
 
-# -------------------------------------------
 
-# ------------------ Menus ---------------------
+# ------------------ Menus functions ---------------------
 
 """
 Displays the Main menu and returns the user choice
@@ -645,7 +675,9 @@ if load_csv_files():                            # if CSV files loaded then conti
                     elif option == "4": print_library_catalogue()     # Print all the books in the library.
                     elif option == "5": break                         # Reporting menu
                     elif option == "6": break
-                    else: print("Invalid option. Please try again.")
+                    else: 
+                        print("Invalid option. Please try again.")
+                        sleep(2)
         elif option == "2":
             while True:
                 if logged_user == None:
@@ -656,15 +688,15 @@ if load_csv_files():                            # if CSV files loaded then conti
                         break
                     if User.login_exists(name):
                         logged_user = User.get_user_obj(name)
-                        if logged_user.access != "10":
-                            print("Insufficient access rights to enter User Administration area")
-                            sleep(2)
-                            break
-                        else:
-                            logged_user = User.get_user_obj(name)
-                            print("logged user",logged_user)
+#                        if logged_user.access != "10":
+#                            print("Insufficient access rights to enter User Administration area")
+#                            sleep(2)
+#                            break
+#                        else:
+#                            logged_user = User.get_user_obj(name)
                 if logged_user.access != "10":
                     print("Insufficient access rights to enter User Administration area")
+                    sleep(2)
                     break
                 super_user_option = super_user_menu()
                 if super_user_option == "1":
@@ -683,6 +715,9 @@ if load_csv_files():                            # if CSV files loaded then conti
             dump_Assets(ASSETCSVFILE)
             Goodbye()
             break
-        else: print("Invalid option. Please try again.")
+        else: 
+            print("Invalid option. Please try again.")
+            sleep(2)
 else:
     print("Data files not found - Exiting program")    
+
