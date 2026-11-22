@@ -352,7 +352,7 @@ def load_Borrower(csv_fname):
 def load_Borrower_books(csv_fname):
     if not file_exists(csv_fname): return False
     try:
-        file_handle = open(csv_fname(),"r", encoding = "utf-8")
+        file_handle = open(csv_fname,"r", encoding = "utf-8")
         headings=file_handle.readline()               # get headings - the object identifiers
         csv_row = file_handle.readline()
         while csv_row != "":
