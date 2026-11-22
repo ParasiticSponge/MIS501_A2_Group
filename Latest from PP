@@ -20,6 +20,16 @@ import pandas as pd                     # Import Pandas library for analytics
 
 USERCSVFILE = "User.csv"
 ASSETCSVFILE = "Assets.csv"
+BORROWERCSVFILE = "Borrower.csv"
+BORROWEDBOOKSCSV = "Brrwdbooks.csv"
+
+isbn_width = 14
+author_width = 25
+title_width = 50
+media_width = 15
+borrower_width = 20
+id_width = 10
+date_width = 11
 
 today = date.today().isoformat()        # Use system date() from datetime module for current date. isoformat converts to string YYYY-MM-DD
 minTitleLength = 20                     # This is the minimum length of the title string. It is used to format the output of the print_library_catalogue() function. If the title is shorter than this length, it will be padded with spaces to align the output.
@@ -162,7 +172,8 @@ class Borrower(Collection):                 # Borrowers names and ids
         return Borrower(input_stud_id, name)
     @select_borrower
     def id_returning(input_stud_id): return None if len(input_stud_id.strip()) == 0 else False  # empty strings return None whilst other IDs are invalid
-  
+
+
 class Book(Borrower):
     """
     __init__()
@@ -179,6 +190,7 @@ class Book(Borrower):
         else: self.period = period                 # Borrowing period for the book.
         self.borrowed = today
         self.due = calculate_due_date(today, self.period)
+        self.returned = ""
         all_borrowers[id].books_on_loan += 1
         borrowed_books.append(self)
 
@@ -204,31 +216,37 @@ class Book(Borrower):
 
 
 class Asset():                                          # library cataliogue asset object
-    def __init__(self, author, title, paperback=None, hardcover=None, audio=None, digital=None):
+    def __init__(self, author, title, isbn, media_format=None):
         self.author = author                 # Author of book.
         self.title = title                   # Title of book.
-        self.paperback = paperback           # Paperback version available.
-        self.hardcover = hardcover           # Hardcover version available.
-        self.audio = audio                   # Audio version available.
-        self.digital = digital               # Ebook version available.
-
+        self.isbn = isbn                     # ISBN 
+        self.media_format = media_format     # media type : Paperback, Hardcover, Audio, AV, Digital,  etc,
         
-
+        
 # ---------------------------------------------------------
 """
 lib_assets is a catalogue of all assets available in the library
 """
+"""
 lib_assets = [
-    Asset("J. R. R. Tolkien", "The Hobbit", paperback=9780261103344, hardcover=9780261103283, digital=9780261103587),
-    Asset("David Levithan", "Everyday", paperback=9780307931894, digital=9780307931111),
-    Asset("Talia Dutton", "M is for Monster", paperback=9781419751974),
-    Asset("Haegi", "Kill the Villainess", paperback=9798400902864),
-    Asset("Stephen King", "Pet Sematary", paperback=9781444708134, audio=9781473688582, digital=9781848940857),
-    Asset("Stephen King", "The Institute", paperback=9781529355413, audio=9781529355383, digital=9781529355420),
-    Asset("Stephen King", "The Shining", paperback=9781399765350) ]
+    Asset("J. R. R. Tolkien", "The Hobbit", 9780261103344, "Paperback"),
+    Asset("J. R. R. Tolkien", "The Hobbit", 9780261103283, "Hardcover"),
+    Asset("J. R. R. Tolkien", "The Hobbit", 9780261103587, "Digital"),
+    Asset("David Levithan", "Everyday", 9780307931894, "Paperback"),
+    Asset("David Levithan", "Everyday", 9780307931111, "Digital"),
+    Asset("Talia Dutton", "M is for Monster", 9781419751974, "Paperback"),
+    Asset("Haegi", "Kill the Villainess", 9798400902864, "Paperback"),
+    Asset("Stephen King", "Pet Sematary", 9781444708134, "Paperback"),
+    Asset("Stephen King", "Pet Sematary", 9781473688582, "Audio"),
+    Asset("Stephen King", "Pet Sematary", 9781848940857, "Digital"),
+    Asset("Stephen King", "The Institute", 9781529355413, "Paperback"),
+    Asset("Stephen King", "The Institute", 9781529355383, "Audio"),
+    Asset("Stephen King", "The Institute", 9781529355420, "Digital"),
+    Asset("Stephen King", "The Shining", 9781399765350, "Paperback") ]
 
+"""
+lib_assets=[]
 # --------------- Functions ---------------------------------
-
 """ clear_screen()
     Clears the user console screen using the appropriate OS system clear screen commands
         nt identifies Windows OS - uses cls, anything else identifies Mac or Linux - uses clear
@@ -239,6 +257,34 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')    # call correct OS clear screen function using os.system to identify OS - nt for windows, otherwise OS is Mac or Linux
     return
 
+def get_Asset_author(isbn):
+    for asset in lib_assets:
+        if str(asset.isbn) == str(isbn):
+            return asset.author
+    return None  # Returned if no matching ISBN is found
+
+def get_Asset_title(isbn):
+    for asset in lib_assets:
+        if str(asset.isbn) == str(isbn):
+            return asset.title
+    return None  # Returned if no matching ISBN is found
+
+def get_Asset_format(isbn):
+    for asset in lib_assets:
+        if str(asset.isbn) == str(isbn):
+            return asset.media_format
+    return None  # Returned if no matching ISBN is found
+
+def get_returned_date(isbn,borrower_id):
+    for book in borrowed_books:
+        if str(book.id) == str(borrower_id):
+            if book.returned=="":
+                return "On Loan"
+            else:
+                return book.returned
+    return None  # Returned if no matching ISBN is found
+    
+    
 def get_csv_user_id(csv_row):
     index = csv_row.find(",",0)     # id is first entry in csv_row
     return csv_row[0:index]
@@ -257,8 +303,95 @@ def get_csv_user_access(csv_row):
     index = csv_row.find(",",0)     # access is third entry in csv_row
     return csv_row[0:index]
     
-def load_csv_files():
-    return(load_User(USERCSVFILE))
+def get_csv_asset_author(csv_row):
+    index = csv_row.find(",",0)     # id is first entry in csv_row
+    return csv_row[0:index]
+
+def get_csv_asset_title(csv_row):
+    index = csv_row.find(",",0)     
+    csv_row = csv_row[index+1:]     # skip id in csv_row 
+    index = csv_row.find(",",0)     # name is second entry in csv_row
+    return csv_row[0:index]
+
+def get_csv_asset_isbn1(csv_row):
+    index = csv_row.find(",",0)
+    csv_row = csv_row[index+1:]     # skip id in csv_row 
+    index = csv_row.find(",",0)
+    csv_row = csv_row[index+1:]     # skip name in csv_row 
+    index = csv_row.find(",",0)     # access is third entry in csv_row
+    return csv_row[0:index]
+
+def get_csv_asset_format(csv_row):
+    index = csv_row.find(",",0)
+    csv_row = csv_row[index+1:]     # skip id in csv_row 
+    index = csv_row.find(",",0)
+    csv_row = csv_row[index+1:]     # skip name in csv_row 
+    index = csv_row.find(",",0)     # access is third entry in csv_row
+    csv_row = csv_row[index+1:]     # skip name in csv_row 
+    index = csv_row.find(",",0)     # access is third entry in csv_row
+    return csv_row[0:index]
+
+def load_Borrower(csv_fname):
+    if not file_exists(csv_fname): return False
+    try:
+        file_handle = open(csv_fname(),"r", encoding = "utf-8")
+        headings=file_handle.readline()               # get headings - the object identifiers
+        csv_row = file_handle.readline()
+        while csv_row != "":
+            borrower_id = get_csv_Borrower_id(csv_row)
+            borrower_name = get_csv_Borrower_name(csv_row)
+            books_on_loan = get_csv_Borrower_books_on_loan(csv_row)
+            this_borrower = Borrower(borrower_id,borrower_name,books_on_loan)  # create User object
+            all_borrowers.append(this_borrower)
+            csv_row = file_handle.readline()        # get rows until EOF
+        file_handle.close()
+    except Exception as e:
+        print("An error occurred while attempting to open the file :",csv_fname)
+    return True
+
+def load_Borrower_books(csv_fname):
+    if not file_exists(csv_fname): return False
+    try:
+        file_handle = open(csv_fname(),"r", encoding = "utf-8")
+        headings=file_handle.readline()               # get headings - the object identifiers
+        csv_row = file_handle.readline()
+        while csv_row != "":
+            borrower_id = get_csv_Borrower_id(csv_row)
+            borrower_name = get_csv_Borrower_name(csv_row)
+            books_on_loan = get_csv_Borrower_books_on_loan(csv_row)
+            isbn = get_csv_Book_isbn(csv_row)
+            period = get_csv_Book_isbn(csv_row)
+            borrowed = get_csv_Book_borrowed_date(csv_row)
+            due = get_csv_Book_due(csv_row)
+            returned = get_csv_Book_returned
+            this_book = Book(borrower_id,borrower_name,books_on_loan)  # create User object
+            borrowed_books.append(this_book)
+            csv_row = file_handle.readline()        # get rows until EOF
+        file_handle.close()
+    except Exception as e:
+        print("An error occurred while attempting to open the file :",csv_fname)
+    return True
+    
+    
+def load_Asset(csv_fname):
+    if not file_exists(csv_fname): return False
+    try:
+        file_handle = open(csv_fname,"r", encoding = "utf-8")
+        headings=file_handle.readline()               # get headings - the object identifiers
+        csv_row = file_handle.readline()
+        while csv_row != "":
+            author =get_csv_asset_author(csv_row)
+            title = get_csv_asset_title(csv_row)
+            isbn1 = get_csv_asset_isbn1(csv_row)
+            m_type = get_csv_asset_format(csv_row)
+            this_asset = Asset(author,title,isbn1,m_type)  # create User object
+            lib_assets.append(this_asset)
+            csv_row = file_handle.readline()        # get rows until EOF
+        file_handle.close()
+    except Exception as e:
+        print(e)
+        print("An error occurred while attempting to open the file :",csv_fname)
+    return True
 
 def load_User(csv_fname):
     if not file_exists(csv_fname): return False
@@ -270,49 +403,77 @@ def load_User(csv_fname):
             this_user = User(get_csv_user_id(csv_row), get_csv_user_name(csv_row), get_csv_user_access(csv_row))  # create User object
             csv_row = file_handle.readline()        # get rows until EOF
         file_handle.close()
-    except:
-        print("An error occurred while attempting to open the file",USERCSVFILE)
+    except Exception as e:
+        print(e)
+        print("An error occurred while attempting to open the file :",csv_fname)
     return True
 
-def dump_Assets(csv_fname):
+def load_csv_files():
+    load_User(USERCSVFILE)
+    load_Asset(ASSETCSVFILE)
+    load_Borrower(BORROWERCSVFILE)
+    load_Borrower_books(BORROWEDBOOKSCSV)
+    return True
+
+def dump_Asset(csv_fname):
     all_asset_rows = lib_assets
     try:
         file_handle = open(csv_fname,"w",encoding="utf-8")       # create empty file
-        file_handle.write("author,title,paperback,hardcover,audio,digital\n")
+        file_handle.write("author,title,isbn,media\n")
     except:
-        print("An error occurred while attempting to open the file",csv_fname)
+        print("An error occurred while attempting to open the file :",csv_fname)
         return False
     for rows in all_asset_rows:
         author = rows.author                 # Author of book.
         title = rows.title                   # Title of book.
-        paperback=rows.paperback             # Paperback version available.
-        hardcover = rows.hardcover           # Hardcover version available.
-        audio = rows.audio                   # Audio version available.
-        digital = rows.digital               # Ebook version available.
-
-        csv_row = author+","+title+","+str(paperback)+","+str(hardcover)+","+str(audio)+","+str(digital)+"\n"
+        isbn = str(rows.isbn)                     # Paperback version available.
+        m_format = rows.media_format             # Hardcover version available.
+        csv_row = author+","+title+","+isbn+","+m_format+"\n"
         file_handle.write(csv_row)
 
     file_handle.close()
         
 def dump_Borrower(csv_fname):
-    all_borrower_rows = all_borrowers
+    all_borrower_rows = list(all_borrowers.values())
     try: 
         file_handle = open(csv_fname,"w",encoding="utf-8")       # create empty file
-        file_handle.write("id,name,access\n")
+        file_handle.write("id,name,books\n")
     except:
         print("An error occurred while attempting to open the file",csv_fname)
         return False
-    for rows in all_user_rows:
-        user_id = rows.id
-        user_name = rows.name
-        user_access = rows.access
-        csv_row = user_id+","+user_name+","+user_access+"\n"
+    for rows in all_borrower_rows:
+        borrower_id = rows.id
+        borrower_name = rows.name
+        books_on_loan = str(rows.books_on_loan)
+        csv_row = borrower_id+","+borrower_name+","+str(books_on_loan)+"\n"
         file_handle.write(csv_row)
 
     file_handle.close()
     return True
-        
+
+def dump_Borrower_books(csv_fname):
+    all_book_rows = borrowed_books
+    try: 
+        file_handle = open(csv_fname,"w",encoding="utf-8")       # create empty file
+        file_handle.write("id,name,books,isbn,period,borrwed,due,returned\n")
+    except:
+        print("An error occurred while attempting to open the file",csv_fname)
+        return False
+    for rows in all_book_rows:
+        borrower_id = rows.id
+        borrower_name = rows.name
+        books_on_loan = str(rows.books_on_loan)
+        isbn = str(rows.isbn)
+        period = str(rows.period)
+        borrowed_date = str(rows.borrowed)
+        due_date = str(rows.due)
+        returned = str(rows.returned)
+        csv_row = borrower_id+","+borrower_name+","+books_on_loan+","+isbn+","+period+","+borrowed_date+","+due_date+","+returned+"\n"
+        file_handle.write(csv_row)
+
+    file_handle.close()
+    return True
+    
 def dump_User(csv_fname):
     all_user_rows = list(all_users.values())
     try: 
@@ -424,24 +585,9 @@ Arguments
 Returns         : Asset object
 """
 def valid_book(isbn):
-    isbn = convert_isbn(isbn)
-    found = [book for book in lib_assets if isbn in vars(book).values()] # checks if the input isbn or title is in any of the parameter values
-    if len(found) == 0: return None
-    if type(isbn) == int:                                              # only works if isbn is number
-        attributes = [value if value == isbn else None for attr, value in vars(found[0]).items()][2:] # loop through the parameters and values of the found book (exclude author and title by using list slicing so we get paperback, hardcover etc). By default all of it's ISBNs are active because it came from the library catalog. Only get the attribute if it matches the given ISBN, otherwise set it to None
-        count = 0
-        for attr in attributes:
-            if attr == None: count += 1                                # attributes should look something like [None, 9780261103283, None, ...], if they are all None, then the book has no available media
-        if count == len(attributes): return None                       # if there is no available media, return None
-        return Asset(found[0].author, found[0].title, *attributes)     # * sign is a list of arguments. Set the parameters to the values in the the attributes list. This means only one type of media will have it's ISBN active.
-    else:
-        while True:
-            media = input(f"Please enter the media type of the item to be borrowed (paperback, hardcover, audio, digital): ").lower()  # remove case sensitivity
-            if media in ("paperback", "hardcover", "audio", "digital"): break
-            else: print("Invalid media type. Please try again.")
-        asset_media = vars(found[0])[media]
-        if asset_media is None: return None                           # return none if format doesn't exist
-        return Asset(found[0].author, found[0].title, asset_media)    # get the value of the parameter in the object's inbuilt self dictionary that matches the input media type.
+    #isbn = convert_isbn(isbn)
+    found = [book for book in lib_assets if str(book.isbn) == str(isbn)] # checks if the input isbn or title is in any of the parameter values
+    return Asset(found[0].author, found[0].title, found[0].media_format)
 
 def book_by_stud(stud_id, isbn):
     users_books = [book for book in borrowed_books if book.id == stud_id]
@@ -483,14 +629,27 @@ Returns     : N/A
 
 """  
 def print_borrower_book_list(borrowed_books):
-              
-    for borrower in borrowed_books:                                     # For each key in the user's borrowed books (For each ISBN int)
-        details = valid_book(borrower.isbn)                             # Get the book details for the ISBN
-        book_type = [param for param, value in vars(details).items() if value != None][-1] # get the media type where the ISBN is valid and not None. Author and name auto are valid, so get last parameter. (also unpack it as first is param and second is value)
-        print(f"Borrower : {borrower.name} ID: {borrower.id} Type: {book_type}  " +
-              f"ISBN: {borrower.isbn} Title: {details.title} {' ' * (minTitleLength - len(details.title))}" +   # Print the key (ISBN), the title of the book, the author of the book, and the due date. The due date is calculated with the current date and the borrowing period from the brrwd dictionary value
-              f"Author: {details.author} {' ' * (minAuthorLength - len(details.author))}" + 
-              f"Due Date: {borrower.due}")    
+    borrower_hd="BORROWER".ljust(borrower_width)
+    id_hd="ID".ljust(id_width)
+    isbn_hd="ISBN".ljust(isbn_width)
+    author_hd="AUTHOR".ljust(author_width)
+    title_hd="TITLE".ljust(title_width)
+    media_hd="FORMAT".ljust(media_width)
+    due_hd="DATE DUE".ljust(date_width)
+    returned_hd="RETURNED".ljust(date_width)
+    print(f"{borrower_hd}{id_hd}{isbn_hd}{author_hd}{title_hd}{media_hd}{due_hd}{returned_hd}")
+    for borrower in borrowed_books:    # For each key in the user's borrowed books (For each ISBN int)
+        author = get_Asset_author(borrower.isbn)
+        title = get_Asset_title(borrower.isbn)
+        media_format = get_Asset_format(borrower.isbn)
+        if borrower.returned==None or borrower.returned=="": 
+            returned="On Loan"
+        else:
+            returned=borrower.returned
+        print(f"{borrower.name.ljust(borrower_width)}{borrower.id.ljust(id_width)}"+
+              f"{str(borrower.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
+              f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
+              f"{borrower.due.ljust(date_width)}{returned.ljust(date_width)}")
     
 """ 
 print_library_catalogue()
@@ -501,14 +660,14 @@ Returns     : N/A
 """  
 def print_library_catalogue():
         """ Function that prints all the books in the library collection. """
+        isbn_hd="ISBN".ljust(isbn_width)
+        author_hd="AUTHOR".ljust(author_width)
+        title_hd="TITLE".ljust(title_width)
+        media_hd="FORMAT".ljust(media_width)
+        print(f"{isbn_hd}{author_hd}{title_hd}{media_hd}")
         for book in lib_assets:
-            for name, value in vars(book).items():          # iterate through each attribute of the book object (title, author, paperback, hardcover, digital)
-                if name in ("title", "author"): continue    # skip author and title so it's just the media types
-                if value is not None:
-                    print(f"ISBN: {value}, Type: {name}," +
-                          f"Title: {book.title},{' ' * (minTitleLength - len(book.title))}" +   # The same as print_user_book_list(), but instead of the due date, it prints the borrowing period. This is more useful for library staff to calculate the due date for each user. It also shows users how long they can borrow a book.
-                          f"Author: {book.author},{' ' * (minAuthorLength - len(book.author))}")
-
+            print(f"{str(book.isbn).ljust(isbn_width)}{book.author.ljust(author_width)}{book.title.ljust(title_width)}{get_Asset_format(book.isbn).ljust(media_width)}")
+            
 """ 
 print_overdue_report()
 Prints all overdue books borrowed
@@ -647,7 +806,6 @@ def Goodbye():
 
 logged_user=None
 if load_csv_files():                            # if CSV files loaded then continue
-
     while True:  # Keep the program running until the user chooses to quit.
         option = menu()  # Display the menu and get the user's choice.
         if option == "1":
@@ -673,7 +831,7 @@ if load_csv_files():                            # if CSV files loaded then conti
                             else: 
                                 selected = next((x for x in list(vars(details).values())[2:] if x is not None), None) # NOTE the function returns None for empty isbns if the isbn was entered as a string (unlike False for int isbn). next() is a generator that doesn't need to store all the values from a list, but evaluates an expression for each item. The list in this case is all the values in a list version of the parameter values (skipping first two as they are author and title), and the expression checks if they're not None. this is because we want to see which one from paperback, hardcover, audio etc is not None
                                 Book(curr_borrower.id, curr_borrower.name, selected, period)
-                            print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name}")
+                            print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name} due for return ")
                     elif option == "2":
                         curr_returner = Borrower.id_returning()
                         if curr_returner == False: print("Borrower doesn't exist")
@@ -686,7 +844,8 @@ if load_csv_files():                            # if CSV files loaded then conti
                                 if details is None: 
                                     print("Book doesn't exist in user's borrowed books")
                                     break
-                                details.return_book()
+#                                details.return_book()
+                                curr_returner.return_book()
                                 print("Successfully returned book")
                             else: print("User has no books to return")
                     elif option == "3": print_borrower_book_list(borrowed_books)                                                                             # Create a new Book object and add it to the borrowed_books list.
@@ -739,12 +898,15 @@ if load_csv_files():                            # if CSV files loaded then conti
                     break                                  # return to main menu
         elif option == "3":
             dump_User(USERCSVFILE)
-            dump_Assets(ASSETCSVFILE)
+            dump_Asset(ASSETCSVFILE)
+            dump_Borrower(BORROWERCSVFILE)
+            dump_Borrower_books(BORROWEDBOOKSCSV)
             Goodbye()
             break
         else: 
             print("Invalid option. Please try again.")
             sleep(2)
+
 else:
     print("Data files not found - Exiting program")    
 
