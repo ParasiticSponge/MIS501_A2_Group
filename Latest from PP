@@ -443,7 +443,7 @@ def print_borrower_book_list(borrowed_books):
         if borrower.returned==None or borrower.returned=="": 
             returned="On Loan"
         else:
-            returned=borrower.returned
+            returned=str(borrower.returned)
         print(f"{borrower.name.ljust(borrower_width)}{borrower.id.ljust(id_width)}"+
               f"{str(borrower.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
