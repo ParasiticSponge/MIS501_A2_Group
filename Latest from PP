@@ -298,7 +298,7 @@ def dump(csv_fname, lst, fields):
         file_handle.write(fields+"\n") # combine all the elements in the list into a string and separate them by comma
     except: print("An error occurred while attempting to open the file :",csv_fname); return False
     for row in lst:
-        csv_row = ",".join([str(x) for x in list(vars(row).values())])+"\n"   # get all the values such as title, author, etc with vars() (make sure they are strings), then combine all the elements in the list into a string and separate them by comma
+        csv_row = ",".join([str(x) for x in list(vars(row).values()) if x != 0])+"\n"   # get all the values such as title, author, etc with vars() (make sure they are strings), then combine all the elements in the list into a string and separate them by comma
         file_handle.write(csv_row)
     file_handle.close()
 
@@ -693,7 +693,7 @@ if load_csv_files():                            # if CSV files loaded, then cont
             dump(USERCSVFILE, list(all_users.values()), "id,name,access")
             # dump(ASSETCSVFILE, lib_assets, "author,title,isbn,media")
             dump(BORROWERCSVFILE, list(all_borrowers.values()), "id,name,books")
-            dump(BORROWEDBOOKSCSV, borrowed_books, "id,name,isbn,period,borrwed,due,returned")
+            dump(BORROWEDBOOKSCSV, borrowed_books, "id,name,isbn,media,borrwed,due,returned")
             Goodbye()
             break
         else: 
