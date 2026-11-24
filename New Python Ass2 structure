@@ -16,7 +16,7 @@ from pathlib import Path                # import file Path object for basic O/S 
 import pandas as pd                     # Import Pandas library for analytics
 
 USERCSVFILE = "User.csv"
-ASSETCSVFILE = "Asset.csv"
+ASSETCSVFILE = "Assets.csv"
 
 today = date.today().isoformat()        # Use system date() from datetime module for current date. isoformat converts to string YYYY-MM-DD
 minTitleLength = 20                     # This is the minimum length of the title string. It is used to format the output of the print_library_catalogue() function. If the title is shorter than this length, it will be padded with spaces to align the output.
@@ -100,7 +100,7 @@ class User(Collection):                 # User subclass of collection
                  : False if the name doesn't exist
     """
     def login_exists(name):
-        matching_object = next((obj for obj in all_users.values() if obj.name == name), None)`
+        matching_object = next((obj for obj in all_users.values() if obj.name == name), None)
         if matching_object: return True
         else: return False
 
@@ -321,6 +321,7 @@ Arguments
           : None - year not passed so month == 2 will return 28
 
 Returns   : int value of the number of days in month
+"""
 """    Arguments
         month   : int
         year    : int - year passed so month == 2 will return 29 for leap years and 28 for other years
@@ -514,7 +515,7 @@ if load_csv_files():                            # if CSV files loaded then conti
             else:
                 while True:
                     # logged_user = User.get_user_obj(name)
-                    option = user_menu()                                                                          # After validation, show the user menu.
+                    option = user_menu(name)                                                                          # After validation, show the user menu.
                     if option == "1":
                         curr_borrower = Borrower.id_borrowing()
                         while curr_borrower != None:
