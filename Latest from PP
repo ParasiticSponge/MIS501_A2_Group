@@ -739,7 +739,6 @@ def Goodbye():
 
 # --------------------------------------------
 if load_csv_files():                            # if CSV files loaded, then continue
-    pass
     while True:                                 # Keep the program running until the user chooses to quit.
         option = menu()                         # Display the menu and get the user's choice.
         if option == "1":                       # If the choice is Logging in
@@ -814,7 +813,7 @@ if load_csv_files():                            # if CSV files loaded, then cont
                         sleep(2)
                         break
                     if User.login_exists(name): logged_user = User.get_user_obj(name)
-                if logged_user.access != "10":
+                if str(logged_user.access) != "10":
                     print("Insufficient access rights to enter User Administration area")
                     sleep(2)
                     break
