@@ -473,12 +473,6 @@ Arguments   : N/A
 Returns     : N/A
 
 """  
-print_overdue_report()
-Prints all overdue books borrowed
-Arguments   : N/A
-Returns     : N/A
-
-"""  
 def print_overdue_report():   # Overdue book report across all students
     overdue = [book for book in borrowed_books if book.is_overdue()]        # get a list of books only if they are overdue
     print(f"{"ID".ljust(id_width)}"+
@@ -728,4 +722,3 @@ if load_csv_files():                            # if CSV files loaded, then cont
             sleep(2)
 else:
     print("Data files not found - Exiting program")
-
