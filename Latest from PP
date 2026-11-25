@@ -15,6 +15,7 @@ from datetime import date               # import system date method from datetim
 from pathlib import Path                # import file Path object for basic O/S file control
 import pandas as pd                     # Import Pandas library for analytics
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 # Constants
 
@@ -548,7 +549,7 @@ def monthly_borrowed_books_chart(borrowed_books):
 
     counts = df.groupby("month").size()
 
-    counts.plot(
+    axis = counts.plot(
         kind="bar",
         title="Books Borrowed By Month",
         xlabel="Month",
@@ -556,8 +557,11 @@ def monthly_borrowed_books_chart(borrowed_books):
         color="steelblue"
     )
 
+    axis.yaxis.set_major_locator(MaxNLocator(integer=True))
     plt.tight_layout()
+    plt.savefig("BooksBorrowedMonthly.pdf",dpi=300)
     plt.show()
+    print("Chart saved to local folder as BooksBorrowedMonthly.pdf")
 
 def chart_borrowed_vs_not_borrowed():
     borrowed_isbns = {
@@ -576,12 +580,14 @@ def chart_borrowed_vs_not_borrowed():
     plt.figure(figsize=(6, 6))
     plt.pie(
         [borrowed_count, not_borrowed_count],
-        labels=["Borrowed", "Available"],
+        labels=["Borrowed", "Never Borrowed"],
         autopct="%1.1f%%",
         colors=["orange", "lightgreen"]
     )
     plt.title("Borrowed vs Available Assets")
+    plt.savefig("BooksBorrowwedVNotBorrowed.pdf",dpi=300)
     plt.show()
+    print("Chart saved to local folder as BooksBorrowwedVNotBorrowed.pdf")
 
 '''
 str get_user_name()
@@ -704,7 +710,7 @@ f"""
 \t\t┃    2: Books borrowed report     ┃
 \t\t┃    3. Books borrowed graph      ┃
 \t\t┃    4. Books not borrowed        ┃
-\t\t┃    5: Back to Main Menu         ┃
+\t\t┃    5: Back to LMS Menu          ┃
 \t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
@@ -820,7 +826,7 @@ if load_csv_files():                            # if CSV files loaded, then cont
                 elif super_user_option == "5": break                                  # return to main menu
         elif option == "3":
             dump(USERCSVFILE, list(all_users.values()), "id,name,access")
-            # dump(ASSETCSVFILE, lib_assets, "author,title,isbn,media")
+            dump(ASSETCSVFILE, lib_assets, "author,title,isbn,media")
             dump(BORROWERCSVFILE, list(all_borrowers.values()), "id,name,books")
             dump(BORROWEDBOOKSCSV, borrowed_books, "id,name,isbn,media,borrwed,due,returned")
             Goodbye()
