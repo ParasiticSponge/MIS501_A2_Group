@@ -606,7 +606,7 @@ f"""
 \t\t┃    1: Enter borrowed items      ┃
 \t\t┃    2: Return borrowed items     ┃
 \t\t┃    3. View Student Books        ┃
-\t\t┃    4. View Library Catalouge    ┃
+\t\t┃    4. View Library Catalogue    ┃
 \t\t┃    5: Reports & Graphs          ┃
 \t\t┃    6: Back to Main Menu         ┃
 \t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
