@@ -597,10 +597,19 @@ Returns     : str containing a valid name
             : empty str if nothing entered
 '''
 def get_user_name():
-    name = input("Please enter the user name (or leave blank to exit) : ").title()
-    while not validate_str(name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ -"):
-        print("User name can only contain alpha characters and spaces - please try again")
-        name = input("Please enter the user name (or leave blank to exit) : ").title()
+    name = input("Please enter the user name (or leave blank to exit) : ").strip().title()
+    valid=False
+    while not valid:
+        if not validate_str(name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ -"):
+            if name=="" or name==None or name[0].upper() not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+                valid=False
+            else:
+                valid=True
+            if valid==False:
+                print("User name can only contain alpha characters and spaces - please try again")
+                name = input("Please enter the user name (or leave blank to exit) : ").strip.title()
+        else:
+            valid=True
     return str(name.strip())
      
 '''
@@ -630,6 +639,15 @@ def validate_input(msg, spec):
         try: 
             if action in valid: return action                       # action in list of accepted terms
         except: print("Input invalid. Please try again.")
+
+def valid_access_level(access_level):
+    access_level=access_level.strip()
+    print(access_level)
+    if len(access_level)>2 or access_level==None: return False
+    if access_level in ["0123456789"] or access_level=="10": 
+        return True 
+    else : 
+        return False
 
 # ------------------ Menus functions ---------------------
 
@@ -743,85 +761,103 @@ if load_csv_files():                            # if CSV files loaded, then cont
         option = menu()                         # Display the menu and get the user's choice.
         if option == "1":                       # If the choice is Logging in
             name = get_user_name().title()      # Get the user's name
-            if not User.login_exists(name): print(f"Name not found...please contact your supervisor for user account creation"); break  # Break if the user doesn't exist
-            while True:
-                logged_user = User.get_user_obj(name)
-                option = user_menu(logged_user.name)                  # After validation, show the user menu.
-                if option == "1":                                     # If the option is to borrow
-                    curr_borrower = Borrower.id_borrowing()           # ask for the student id
-                    while curr_borrower != None:
-                        isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
-                        if isbn == "": break
-                        types = ['paperback', 'hardcover', 'digital', 'audio']
-                        media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
-                        if media == "": break
-                        details = valid_book(isbn, media, lib_assets)
-                        if details is None: print("Book doesn't exist"); break
-                        isbn = isbn if isbn.isdigit() else details.isbn     # convert isbn to integer if it was given as a title
-                        period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
-                        period = None if period == "" or not period.isdigit() else int(period)
-                        Book(curr_borrower.id, curr_borrower.name, isbn, media, period=period)
-                        print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name} due for return ...")
-                elif option == "2":
-                    curr_returner = Borrower.id_returning()
-                    if curr_returner == False: print("Borrower doesn't exist")
-                    elif curr_returner != None:
-                        location = [book for book in borrowed_books if book.id == curr_returner.id]    # get all the books under the user
-                        while curr_returner.books_on_loan > 0:        # could also use above location to check list length
-                            isbn = input("Please enter the ISBN or Title of the book to return (or leave blank to exit): ")
+            if not User.login_exists(name): 
+                print(f"Name not found...please contact your supervisor for user account creation")
+                sleep(2)
+            else:     # Break if the user doesn't exist
+                while True:
+                    logged_user = User.get_user_obj(name)
+                    option = user_menu(logged_user.name)                  # After validation, show the user menu.
+                    if option == "1":                                     # If the option is to borrow
+                        curr_borrower = Borrower.id_borrowing()           # ask for the student id
+                        while curr_borrower != None:
+                            isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
                             if isbn == "": break
                             types = ['paperback', 'hardcover', 'digital', 'audio']
                             media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
                             if media == "": break
-                            isbn = isbn if isbn.isdigit() else get_isbn(isbn)
-                            details = valid_book(isbn, media, location)           # return the book object to return (Note: Not an asset object. so can automatically call return without checking media type etc)
-                            if details is None: print("Book doesn't exist in user's borrowed books"); break
-                            details.return_book()   # even if book was returned from a new list 'location', as long as the object signatures match, it will be returned from borrowed_books
-                            print("Successfully returned book")
-                        else: print("User has no books to return")
-                    pass
-                elif option == "3": print_borrower_book_list(borrowed_books)                                                                             # Create a new Book object and add it to the borrowed_books list.
-                elif option == "4": print_library_catalogue()     # Print all the books in the library.
-                elif option == "5": 
-                    option = report_menu(User.get_user_obj(name))
-                    while True:
-                        if option=="1": 
-                            print_overdue_report()
-                        elif option=="2": 
-                            print_books_borrowed_report()
-                        elif option=="3":
-                            monthly_borrowed_books_chart(borrowed_books)
-                        elif option=="4": 
-                            rep_type = chart_or_report_menu().upper()
-                            if rep_type =="1": 
-                                chart_borrowed_vs_not_borrowed()
-                            elif rep_type== "2":
-                                print_books_not_borrowed_report()
-                        elif option=="5": break
-
+                            details = valid_book(isbn, media, lib_assets)
+                            if details is None: print("Book doesn't exist"); break
+                            isbn = isbn if isbn.isdigit() else details.isbn     # convert isbn to integer if it was given as a title
+                            period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
+                            period = None if period == "" or not period.isdigit() else int(period)
+                            Book(curr_borrower.id, curr_borrower.name, isbn, media, period=period)
+                            print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name} due for return ...")
+                    elif option == "2":
+                        curr_returner = Borrower.id_returning()
+                        if curr_returner == False: print("Borrower doesn't exist")
+                        elif curr_returner != None:
+                            location = [book for book in borrowed_books if book.id == curr_returner.id]    # get all the books under the user
+                            while curr_returner.books_on_loan > 0:        # could also use above location to check list length
+                                isbn = input("Please enter the ISBN or Title of the book to return (or leave blank to exit): ")
+                                if isbn == "": break
+                                types = ['paperback', 'hardcover', 'digital', 'audio']
+                                media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
+                                if media == "": break
+                                isbn = isbn if isbn.isdigit() else get_isbn(isbn)
+                                details = valid_book(isbn, media, location)           # return the book object to return (Note: Not an asset object. so can automatically call return without checking media type etc)
+                                if details is None: print("Book doesn't exist in user's borrowed books"); break
+                                details.return_book()   # even if book was returned from a new list 'location', as long as the object signatures match, it will be returned from borrowed_books
+                                print("Successfully returned book")
+                            else: print("User has no books to return")
+                        pass
+                    elif option == "3": print_borrower_book_list(borrowed_books)                                                                             # Create a new Book object and add it to the borrowed_books list.
+                    elif option == "4": print_library_catalogue()     # Print all the books in the library.
+                    elif option == "5": 
                         option = report_menu(User.get_user_obj(name))
-                elif option == "6": break
-                else: 
-                    print("Invalid option. Please try again.")
-                    sleep(2)
+                        while True:
+                            if option=="1": 
+                                print_overdue_report()
+                            elif option=="2": 
+                                print_books_borrowed_report()
+                            elif option=="3":
+                                monthly_borrowed_books_chart(borrowed_books)
+                            elif option=="4": 
+                                rep_type = chart_or_report_menu().upper()
+                                if rep_type =="1": 
+                                    chart_borrowed_vs_not_borrowed()
+                                elif rep_type== "2":
+                                    print_books_not_borrowed_report()
+                            elif option=="5": break
+    
+                            option = report_menu(User.get_user_obj(name))
+                    elif option == "6": break
+                    else: 
+                        print("Invalid option. Please try again.")
+                        sleep(2)
         elif option == "2":
             while True:
                 if logged_user == None:
-                    name = get_user_name().title()
-                    if name == "": 
-                        print("User name not entered")
+                    name = get_user_name()
+                    if name=="" or name==None:
+                        print("Invalid user name entered")
                         sleep(2)
                         break
                     if User.login_exists(name): logged_user = User.get_user_obj(name)
+                if logged_user==None: 
+                    print("Invalid user name entered ")
+                    break
                 if str(logged_user.access) != "10":
                     print("Insufficient access rights to enter User Administration area")
                     sleep(2)
                     break
                 super_user_option = super_user_menu()
-                if super_user_option == "1": logged_user = User.create_User()         # create user
+                if super_user_option == "1": User.create_User()         # create user
                 elif super_user_option == "2": User.delete_User()                     # delete user - not implemented
                 elif super_user_option == "3": User.list_library_users()              # show all users
-                elif super_user_option == "4": print("Change user access not implemented yet"); break                                   # change user access  - not implemented
+                elif super_user_option == "4":
+                    
+                    print("Change user access not implemented yet")
+                    user_to_change = input("Enter Staff ID for access change ").upper
+                    if user_to_change=="":                                           # change user access  - not implemented
+                        print("User name not entered - Change user access level cancelled")
+                        sleep(2)
+                        break
+                    new_access_level  = input("Please enter the new access level from 0..10 : ")
+                    if valid_access_level(new_access_level):
+                        all_users[str(user_to_change)]=new_access_level
+                    else:
+                        print("Invalid access level entered - cancelled")
                 elif super_user_option == "5": break                                  # return to main menu
         elif option == "3":
             dump(USERCSVFILE, list(all_users.values()), "id,name,access")
