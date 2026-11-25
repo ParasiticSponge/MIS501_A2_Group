@@ -14,7 +14,7 @@ import csv                              # import Pythin csv function library
 from datetime import date               # import system date method from datetime library
 from pathlib import Path                # import file Path object for basic O/S file control
 import pandas as pd                     # Import Pandas library for analytics
-
+import matplotlib.pyplot as plt
 
 # Constants
 
@@ -199,7 +199,7 @@ class Book(Borrower):
     def return_book(self):
         self.returned = today
         all_borrowers[self.id].books_on_loan-=1
-        if all_borrowers[self.id].books_on_loan == 0: del all_borrowers[self.id]          # If the student has no more books on loan, remove them from the all_borrowers dictionary.
+#        if all_borrowers[self.id].books_on_loan == 0: del all_borrowers[self.id]          # If the student has no more books on loan, remove them from the all_borrowers dictionary.
         # borrowed_books.remove(self)                      # Remove the book from the borrowed_books list. This is done to keep track of which books are currently borrowed and which are not.
 
 
@@ -246,24 +246,6 @@ def get_csv_asset(csv_row, num):
     try: return int(float(csv_row[0:index]))  # try to convert the scientific notation to integer
     except: return csv_row[0:index]
 
-# def load(csv_fname, lst):
-#     if not file_exists(csv_fname): return False
-#     with open(csv_fname, newline="", encoding="utf-8") as f:
-#         reader = csv.DictReader(f)
-#         for row in reader:
-#             try: 
-#                 if row['id'] == '': continue     # this is temporary because there is a writing issue that adds an extra 0 in Borrower.csv loan books with no id or name
-#             except: pass
-#             # fields = list(row.values())
-#             fields = []
-#             for val in row.values(): 
-#                 try: fields.append(int(float(val)))
-#                 except: fields.append(val)
-#             this_class = Borrower(*fields) if csv_fname == BORROWERCSVFILE else Book(*fields) if csv_fname == BORROWEDBOOKSCSV else Asset(*fields) if csv_fname == ASSETCSVFILE else User(*fields) # create User object by passing the the variables from the fields list
-#             if lst != None: 
-#                 try: lst.append(this_class)
-#                 except: lst[fields[0]] = this_class      # field 0 is always ID
-#     return True if lst else False     # return true if lst if filled
 
 def load(csv_fname, num_fields, lst):
     if not file_exists(csv_fname): return False
@@ -282,11 +264,6 @@ def load(csv_fname, num_fields, lst):
     file_handle.close()
     return True
 
-# def load_csv_files():
-#     return load(USERCSVFILE, all_users) and \
-#     load(ASSETCSVFILE, lib_assets) and \
-#     load(BORROWERCSVFILE, all_borrowers) and \
-#     load(BORROWEDBOOKSCSV, borrowed_books)      # and statement to combine the truth table
 def load_csv_files():
     return load(USERCSVFILE, 3, all_users) and \
     load(ASSETCSVFILE, 4, lib_assets) and \
@@ -428,6 +405,39 @@ Returns     : N/A
 
 """  
 def print_borrower_book_list(borrowed_books):
+    borrower = input("Please enter the borrower's ID :").upper()
+    if borrower=="":return
+    borrower_books = [book for book in borrowed_books if borrower==book.id.upper()]        # get a list of books only if they are overdue
+    print(f"{"ID".ljust(id_width)}"+
+          f"{"ISBN".ljust(isbn_width)}{"AUTHOR".ljust(author_width)}"+
+          f"{"TITLE".ljust(title_width)}{"FORMAT".ljust(media_width)}"+
+          f"{"DUE".ljust(date_width)}{"RETURNED".ljust(date_width)}")
+
+    if borrower_books: 
+        for book in borrower_books:    # For each key in the user's borrowed books (For each ISBN int)
+            author = get_Asset(book.isbn, "author")
+            title = get_Asset(book.isbn, "title")
+            media_format = get_Asset(book.isbn, "format")
+            if book.returned==None or book.returned=="": 
+                returned="On Loan"
+            else:
+                returned=str(book.returned)
+            print(f"{book.id.ljust(id_width)}"+
+                  f"{str(book.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
+                  f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
+                  f"{book.due.ljust(date_width)}{returned.ljust(date_width)}")
+    else:
+        print(borrower, "has not borrowed any books")
+        return
+
+""" 
+print_books_borrower_report()
+Prints all the books borrowed. It prints the due date rather than the days left, as the due date is more useful to the user
+Arguments   : borrowed_books - dictionary list of borrowed books
+Returns     : N/A
+
+"""  
+def print_books_borrowed_report():
     borrower_hd="BORROWER".ljust(borrower_width)
     id_hd="ID".ljust(id_width)
     isbn_hd="ISBN".ljust(isbn_width)
@@ -450,6 +460,31 @@ def print_borrower_book_list(borrowed_books):
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
               f"{borrower.due.ljust(date_width)}{returned.ljust(date_width)}")
     
+def print_books_not_borrowed_report():
+    borrowed_isbns = {book.isbn for book in borrowed_books}
+    isbn_hd="ISBN".ljust(isbn_width)
+    author_hd="AUTHOR".ljust(author_width)
+    title_hd="TITLE".ljust(title_width)
+    media_hd="FORMAT".ljust(media_width)
+    print(f"{isbn_hd}{title_hd}{author_hd}{media_hd}")
+    for asset in lib_assets:
+        if asset.isbn not in borrowed_isbns:
+            print(f"{str(asset.isbn).ljust(isbn_width)}{asset.title.ljust(title_width)}{asset.author.ljust(author_width)}{media_hd.ljust(media_width)}")
+
+def get_assets_borrowed_not_borrowed_counts():
+    borrowed_isbns = {
+        book.isbn
+        for book in borrowed_books
+        if book.returned == ""
+    }
+
+    borrowed = sum(
+        1 for asset in lib_assets
+        if asset.isbn in borrowed_isbns
+    )
+
+    not_borrowed = len(lib_assets) - borrowed
+    return borrowed, not_borrowed    
 """ 
 print_library_catalogue()
 Prints all assets in the Library Catalogue
@@ -497,9 +532,60 @@ def print_overdue_report():   # Overdue book report across all students
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
               f"{book.due.ljust(date_width)}{returned.ljust(date_width)}")
 
+def monthly_borrowed_books_chart(borrowed_books):
+    if not borrowed_books:
+        print("No borrowing records found")
+        return
+
+    data = [
+        {"borrowed": book.borrowed}
+        for book in borrowed_books
+    ]
+
+    df = pd.DataFrame(data)
+
+    df["month"] = pd.to_datetime(df["borrowed"]).dt.strftime("%Y-%m")
+
+    counts = df.groupby("month").size()
+
+    counts.plot(
+        kind="bar",
+        title="Books Borrowed By Month",
+        xlabel="Month",
+        ylabel="Number of Books Borrowed",
+        color="steelblue"
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+def chart_borrowed_vs_not_borrowed():
+    borrowed_isbns = {
+        book.isbn
+        for book in borrowed_books
+        if book.returned == "" or book.returned is None
+    }
+
+    borrowed_count = len(borrowed_isbns)
+
+    not_borrowed_count = sum(
+        1 for asset in lib_assets
+        if asset.isbn not in borrowed_isbns
+    )
+
+    plt.figure(figsize=(6, 6))
+    plt.pie(
+        [borrowed_count, not_borrowed_count],
+        labels=["Borrowed", "Available"],
+        autopct="%1.1f%%",
+        colors=["orange", "lightgreen"]
+    )
+    plt.title("Borrowed vs Available Assets")
+    plt.show()
+
 '''
 str get_user_name()
-Returns a valid name entered by the user or an empty string ""
+Returns a valid name entered by the user or an empty string
 
 Returns     : str containing a valid name
             : empty str if nothing entered
@@ -623,6 +709,19 @@ f"""
 """)
     return option
 
+def chart_or_report_menu():
+    option = input(
+f"""
+\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+\t\t┃         Report format           ┃
+\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+\t\t┃   Please select an option:      ┃
+\t\t┃    1: Chart                     ┃
+\t\t┃    2: Report                    ┃
+\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+""")
+    return option
+
 def Goodbye():
     print("""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -681,12 +780,21 @@ if load_csv_files():                            # if CSV files loaded, then cont
                 elif option == "5": 
                     option = report_menu(User.get_user_obj(name))
                     while True:
-                        if option=="1": break
-                        elif option=="2": break
-                        elif option=="3": break
-                        elif option=="4": break
+                        if option=="1": 
+                            print_overdue_report()
+                        elif option=="2": 
+                            print_books_borrowed_report()
+                        elif option=="3":
+                            monthly_borrowed_books_chart(borrowed_books)
+                        elif option=="4": 
+                            rep_type = chart_or_report_menu().upper()
+                            if rep_type =="1": 
+                                chart_borrowed_vs_not_borrowed()
+                            elif rep_type== "2":
+                                print_books_not_borrowed_report()
                         elif option=="5": break
-                        else: option = report_menu(User.get_user_obj(name))
+
+                        option = report_menu(User.get_user_obj(name))
                 elif option == "6": break
                 else: 
                     print("Invalid option. Please try again.")
@@ -705,8 +813,8 @@ if load_csv_files():                            # if CSV files loaded, then cont
                     sleep(2)
                     break
                 super_user_option = super_user_menu()
-                if super_user_option == "1": logged_user = User.create_User()        # create user
-                elif super_user_option == "2": User.delete_User()                                   # delete user - not implemented
+                if super_user_option == "1": logged_user = User.create_User()         # create user
+                elif super_user_option == "2": User.delete_User()                     # delete user - not implemented
                 elif super_user_option == "3": User.list_library_users()              # show all users
                 elif super_user_option == "4": print("Change user access not implemented yet"); break                                   # change user access  - not implemented
                 elif super_user_option == "5": break                                  # return to main menu
