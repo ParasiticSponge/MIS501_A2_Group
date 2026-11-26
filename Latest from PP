@@ -11,14 +11,13 @@
 from time import sleep
 import os                               # import OS library to all for cls()
 import csv                              # import Pythin csv function library
-from datetime import date               # import system date method from datetime library
+from datetime import date, datetime               # import system date method from datetime library
 from pathlib import Path                # import file Path object for basic O/S file control
 import pandas as pd                     # Import Pandas library for analytics
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 # Constants
-
 USERCSVFILE = "User.csv"
 ASSETCSVFILE = "Assets.csv"
 BORROWERCSVFILE = "Borrower.csv"
@@ -233,10 +232,8 @@ def get_Asset(isbn, field):
 def get_returned_date(isbn,borrower_id):
     for book in borrowed_books:
         if str(book.id) == str(borrower_id):
-            if book.returned=="":
-                return "On Loan"
-            else:
-                return book.returned
+            if book.returned=="": return "On Loan"
+            else: return book.returned
     return None  # Returned if no matching ISBN is found
     
 def get_csv_asset(csv_row, num):
@@ -369,9 +366,18 @@ Arguments
 Returns         : Asset object
 """
 def valid_book(isbn, media, loc): 
-    try: return next((book for book in loc if (str(book.isbn) == str(isbn) or book.title.lower() == isbn.lower()) and (book.media_format == media if not isbn.isdigit() else True)), None)  # determining a valid book in Assets. Compare media format only if isbn is string title, otherwise just pass True
-    except: return next((book for book in loc if str(book.isbn) == str(isbn) and (book.media_format == media if not isbn.isdigits() else True) and book.returned == ''), None)      # determining a valid book in BorrowedBooks
-def get_isbn(title): return next((book.isbn for book in lib_assets if book.title.lower() == title.lower()), None)
+    try: return next([(book for book in loc if (str(book.isbn) == str(isbn) or book.title.lower() == isbn.lower()) and (book.media_format.lower() == media.lower() if not isbn.isdigit() else True))], None)  # determining a valid book in Assets. Compare media format only if isbn is string title, otherwise just pass True. Note it's returning a list (so data type matches case below)
+    except: 
+        # return next((book for book in loc if str(book.isbn) == str(isbn) and (book.media_format == media if not isbn.isdigits() else True) and book.returned == ''), None)      # determining a valid book in BorrowedBooks
+        isbn = isbn if isbn.isdigit() else get_isbn(isbn, media)
+        lst = [book for book in loc if str(book.isbn) == str(isbn) and book.returned == '']   # assets should already be ordered from oldest to newest because of add in csv
+        # lst = sorted(lst, key=lambda book: datetime.strptime(book.due, "%d/%m/%Y"))    # convert the due dates using datetime module, then sort the list based on oldest to newest
+        if len(lst) > 1:
+            action = validate_input(f"Multiple identical assets detected. Enter how many to return (1-{len(lst)}) or 'all': ", (False, ['all']))  # Validate_Input to accept either digits or 'all'
+            lst = lst if action.lower() == "all" else [lst[i] for i in range(int(action))]
+        return lst if len(lst) > 0 else None
+def get_isbn(title, media): return next((book.isbn for book in lib_assets if book.title.lower() == title.lower() and book.media_format.lower() == media.lower()), None)
+def get_title(isbn): return next((book.title for book in lib_assets if str(book.isbn) == str(isbn)), None)
 
 def book_by_stud(stud_id, isbn):
     users_books = [book for book in borrowed_books if book.id == stud_id]
@@ -413,23 +419,18 @@ def print_borrower_book_list(borrowed_books):
           f"{'ISBN'.ljust(isbn_width)}{'AUTHOR'.ljust(author_width)}"+
           f"{'TITLE'.ljust(title_width)}{'FORMAT'.ljust(media_width)}"+
           f"{'DUE'.ljust(date_width)}{'RETURNED'.ljust(date_width)}")
-
     if borrower_books: 
         for book in borrower_books:    # For each key in the user's borrowed books (For each ISBN int)
             author = get_Asset(book.isbn, "author")
             title = get_Asset(book.isbn, "title")
             media_format = get_Asset(book.isbn, "format")
-            if book.returned==None or book.returned=="": 
-                returned="On Loan"
-            else:
-                returned=str(book.returned)
+            if book.returned==None or book.returned=="": returned="On Loan"
+            else: returned=str(book.returned)
             print(f"{book.id.ljust(id_width)}"+
                   f"{str(book.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
                   f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
                   f"{book.due.ljust(date_width)}{returned.ljust(date_width)}")
-    else:
-        print(borrower, "has not borrowed any books")
-        return
+    else: print(borrower, "has not borrowed any books"); return
 
 """ 
 print_books_borrower_report()
@@ -452,10 +453,8 @@ def print_books_borrowed_report():
         author = get_Asset(borrower.isbn, "author")
         title = get_Asset(borrower.isbn, "title")
         media_format = get_Asset(borrower.isbn, "format")
-        if borrower.returned==None or borrower.returned=="": 
-            returned="On Loan"
-        else:
-            returned=str(borrower.returned)
+        if borrower.returned==None or borrower.returned=="": returned="On Loan"
+        else: returned=str(borrower.returned)
         print(f"{borrower.name.ljust(borrower_width)}{borrower.id.ljust(id_width)}"+
               f"{str(borrower.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
@@ -469,8 +468,7 @@ def print_books_not_borrowed_report():
     media_hd="FORMAT".ljust(media_width)
     print(f"{isbn_hd}{title_hd}{author_hd}{media_hd}")
     for asset in lib_assets:
-        if asset.isbn not in borrowed_isbns:
-            print(f"{str(asset.isbn).ljust(isbn_width)}{asset.title.ljust(title_width)}{asset.author.ljust(author_width)}{media_hd.ljust(media_width)}")
+        if asset.isbn not in borrowed_isbns: print(f"{str(asset.isbn).ljust(isbn_width)}{asset.title.ljust(title_width)}{asset.author.ljust(author_width)}{media_hd.ljust(media_width)}")
 
 def get_assets_borrowed_not_borrowed_counts():
     borrowed_isbns = {
@@ -478,12 +476,10 @@ def get_assets_borrowed_not_borrowed_counts():
         for book in borrowed_books
         if book.returned == ""
     }
-
     borrowed = sum(
         1 for asset in lib_assets
         if asset.isbn in borrowed_isbns
     )
-
     not_borrowed = len(lib_assets) - borrowed
     return borrowed, not_borrowed    
 """ 
@@ -515,40 +511,27 @@ def print_overdue_report():   # Overdue book report across all students
           f"{'ISBN'.ljust(isbn_width)}{'AUTHOR'.ljust(author_width)}"+
           f"{'TITLE'.ljust(title_width)}{'FORMAT'.ljust(media_width)}"+
           f"{'DUE'.ljust(date_width)}{'RETURNED'.ljust(date_width)}")
-
-    if len(overdue) == 0: 
-        print("No currently overdue books")
-        return
-
+    if len(overdue) == 0: print("No currently overdue books"); return
     for book in overdue:
         author = get_Asset(book.isbn, "author")
         title = get_Asset(book.isbn, "title")
         media_format = get_Asset(book.isbn, "format")
-        if book.returned==None or book.returned=="": 
-            returned="On Loan"
-        else:
-            returned=str(book.returned)
+        if book.returned==None or book.returned=="": returned="On Loan"
+        else: returned=str(book.returned)
         print(f"{book.id.ljust(id_width)}"+
               f"{str(book.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
               f"{book.due.ljust(date_width)}{returned.ljust(date_width)}")
 
 def monthly_borrowed_books_chart(borrowed_books):
-    if not borrowed_books:
-        print("No borrowing records found")
-        return
-
+    if not borrowed_books: print("No borrowing records found"); return
     data = [
         {"borrowed": book.borrowed}
         for book in borrowed_books
     ]
-
     df = pd.DataFrame(data)
-
     df["month"] = pd.to_datetime(df["borrowed"]).dt.strftime("%Y-%m")
-
     counts = df.groupby("month").size()
-
     axis = counts.plot(
         kind="bar",
         title="Books Borrowed By Month",
@@ -556,7 +539,6 @@ def monthly_borrowed_books_chart(borrowed_books):
         ylabel="Number of Books Borrowed",
         color="steelblue"
     )
-
     axis.yaxis.set_major_locator(MaxNLocator(integer=True))
     plt.tight_layout()
     plt.savefig("BooksBorrowedMonthly.pdf",dpi=300)
@@ -601,15 +583,12 @@ def get_user_name():
     valid=False
     while not valid:
         if not validate_str(name,"ABCDEFGHIJKLMNOPQRSTUVWXYZ -"):
-            if name=="" or name==None or name[0].upper() not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-                valid=False
-            else:
-                valid=True
+            if name=="" or name==None or name[0].upper() not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ": valid=False
+            else: valid=True
             if valid==False:
                 print("User name can only contain alpha characters and spaces - please try again")
                 name = input("Please enter the user name (or leave blank to exit) : ").strip.title()
-        else:
-            valid=True
+        else: valid=True
     return str(name.strip())
      
 '''
@@ -644,10 +623,8 @@ def valid_access_level(access_level):
     access_level=access_level.strip()
     print(access_level)
     if len(access_level)>2 or access_level==None: return False
-    if access_level in ["0123456789"] or access_level=="10": 
-        return True 
-    else : 
-        return False
+    if access_level in ["0123456789"] or access_level=="10": return True 
+    else: return False
 
 # ------------------ Menus functions ---------------------
 
@@ -756,6 +733,19 @@ def Goodbye():
     """)
 
 # --------------------------------------------
+def handle_action(location):
+    isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
+    if isbn == "": return None
+    if not isbn.isdigit():
+        types = ['paperback', 'hardcover', 'digital', 'audio']
+        media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
+        if media == "": return None
+    else: media = ""
+    details = valid_book(isbn, media, location)
+    if details is None: print("Book doesn't exist") if location == lib_assets else print("Book doesn't exist in user's borrowed books"); return None
+    isbn = isbn if isbn.isdigit() else details[0].isbn     # convert isbn to integer if it was given as a title
+    return (isbn, media, details)
+
 if load_csv_files():                            # if CSV files loaded, then continue
     while True:                                 # Keep the program running until the user chooses to quit.
         option = menu()                         # Display the menu and get the user's choice.
@@ -771,16 +761,8 @@ if load_csv_files():                            # if CSV files loaded, then cont
                     if option == "1":                                     # If the option is to borrow
                         curr_borrower = Borrower.id_borrowing()           # ask for the student id
                         while curr_borrower != None:
-                            isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
-                            if isbn == "": break
-                            if not isbn.isdigit():
-                                types = ['paperback', 'hardcover', 'digital', 'audio']
-                                media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
-                                if media == "": break
-                            else: media = ""
-                            details = valid_book(isbn, media, lib_assets)
-                            if details is None: print("Book doesn't exist"); break
-                            isbn = isbn if isbn.isdigit() else details.isbn     # convert isbn to integer if it was given as a title
+                            try: isbn, media, details = handle_action(lib_assets)
+                            except: break
                             period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
                             period = None if period == "" or not period.isdigit() else int(period)
                             book = Book(curr_borrower.id, curr_borrower.name, isbn, media if media != "" else details.media_format, period=period)
@@ -791,42 +773,28 @@ if load_csv_files():                            # if CSV files loaded, then cont
                         elif curr_returner != None:
                             location = [book for book in borrowed_books if book.id == curr_returner.id]    # get all the books under the user
                             while curr_returner.books_on_loan > 0:        # could also use above location to check list length
-                                isbn = input("Please enter the ISBN or Title of the book to return (or leave blank to exit): ")
-                                if isbn == "": break
-                                types = ['paperback', 'hardcover', 'digital', 'audio']
-                                media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
-                                if media == "": break
-                                isbn = isbn if isbn.isdigit() else get_isbn(isbn)
-                                details = valid_book(isbn, media, location)           # return the book object to return (Note: Not an asset object. so can automatically call return without checking media type etc)
-                                if details is None: print("Book doesn't exist in user's borrowed books"); break
-                                details.return_book()   # even if book was returned from a new list 'location', as long as the object signatures match, it will be returned from borrowed_books
-                                print("Successfully returned book")
+                                try: isbn, media, details = handle_action(location)
+                                except: break
+                                for detail in details:     # there may be multiple books with the same isbn and format in a user's posession
+                                    detail.return_book()   # even if book was returned from a new list 'location', as long as the object signatures match, it will be returned from borrowed_books
+                                print(f"Successfully returned {len(details)} {get_title(isbn) if str(isbn).isdigit() else isbn} book(s) with due date(s) {[detail.due for detail in details]}")
                             else: print("User has no books to return")
-                        pass
                     elif option == "3": print_borrower_book_list(borrowed_books)                                                                             # Create a new Book object and add it to the borrowed_books list.
                     elif option == "4": print_library_catalogue()     # Print all the books in the library.
                     elif option == "5": 
                         option = report_menu(User.get_user_obj(name))
                         while True:
-                            if option=="1": 
-                                print_overdue_report()
-                            elif option=="2": 
-                                print_books_borrowed_report()
-                            elif option=="3":
-                                monthly_borrowed_books_chart(borrowed_books)
+                            if option=="1": print_overdue_report()
+                            elif option=="2": print_books_borrowed_report()
+                            elif option=="3": monthly_borrowed_books_chart(borrowed_books)
                             elif option=="4": 
                                 rep_type = chart_or_report_menu().upper()
-                                if rep_type =="1": 
-                                    chart_borrowed_vs_not_borrowed()
-                                elif rep_type== "2":
-                                    print_books_not_borrowed_report()
+                                if rep_type =="1": chart_borrowed_vs_not_borrowed()
+                                elif rep_type== "2": print_books_not_borrowed_report()
                             elif option=="5": break
-    
                             option = report_menu(User.get_user_obj(name))
                     elif option == "6": break
-                    else: 
-                        print("Invalid option. Please try again.")
-                        sleep(2)
+                    else: print("Invalid option. Please try again."); sleep(2)
         elif option == "2":
             while True:
                 if logged_user == None:
@@ -836,9 +804,7 @@ if load_csv_files():                            # if CSV files loaded, then cont
                         sleep(2)
                         break
                     if User.login_exists(name): logged_user = User.get_user_obj(name)
-                if logged_user==None: 
-                    print("Invalid user name entered ")
-                    break
+                if logged_user==None: print("Invalid user name entered "); break
                 if str(logged_user.access) != "10":
                     print("Insufficient access rights to enter User Administration area")
                     sleep(2)
@@ -848,7 +814,6 @@ if load_csv_files():                            # if CSV files loaded, then cont
                 elif super_user_option == "2": User.delete_User()                     # delete user - not implemented
                 elif super_user_option == "3": User.list_library_users()              # show all users
                 elif super_user_option == "4":
-                    
                     print("Change user access not implemented yet")
                     user_to_change = input("Enter Staff ID for access change ").upper
                     if user_to_change=="":                                           # change user access  - not implemented
@@ -856,10 +821,8 @@ if load_csv_files():                            # if CSV files loaded, then cont
                         sleep(2)
                         break
                     new_access_level  = input("Please enter the new access level from 0..10 : ")
-                    if valid_access_level(new_access_level):
-                        all_users[str(user_to_change)]=new_access_level
-                    else:
-                        print("Invalid access level entered - cancelled")
+                    if valid_access_level(new_access_level): all_users[str(user_to_change)]=new_access_level
+                    else: print("Invalid access level entered - cancelled")
                 elif super_user_option == "5": break                                  # return to main menu
         elif option == "3":
             dump(USERCSVFILE, list(all_users.values()), "id,name,access")
@@ -868,8 +831,5 @@ if load_csv_files():                            # if CSV files loaded, then cont
             dump(BORROWEDBOOKSCSV, borrowed_books, "id,name,isbn,media,borrwed,due,returned")
             Goodbye()
             break
-        else: 
-            print("Invalid option. Please try again.")
-            sleep(2)
-else:
-    print("Data files not found - Exiting program")
+        else: print("Invalid option. Please try again."); sleep(2)
+else: print("Data files not found - Exiting program")
