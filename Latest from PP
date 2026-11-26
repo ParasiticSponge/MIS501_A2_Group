@@ -496,7 +496,7 @@ def print_library_catalogue():
         title_hd="TITLE".ljust(title_width)
         media_hd="FORMAT".ljust(media_width)
         print(f"{isbn_hd}{author_hd}{title_hd}{media_hd}")
-        for book in lib_assets: print(f"{str(book.isbn).ljust(isbn_width)}{book.author.ljust(author_width)}{book.title.ljust(title_width)}{get_Asset(book.isbn, 'format').ljust(media_width)}")
+        for book in lib_assets: print(f"{str(book.isbn).ljust(isbn_width)}{book.author.ljust(author_width)}{str(book.title).ljust(title_width)}{get_Asset(book.isbn, 'format').ljust(media_width)}")
             
 """ 
 print_overdue_report()
