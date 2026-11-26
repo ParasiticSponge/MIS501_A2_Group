@@ -635,10 +635,15 @@ Returns   : str containing the user's selection
 """
 def menu():
     clear_screen()
+    if logged_user==None:
+        user_tag = "No user logged in"
+    else:
+        user_tag = logged_user.name
     option =input(
 f"""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 \t\t┃  Welcome to the Library System  ┃
+\t\t┃{user_tag:^33}┃
 \t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 \t\t┃     Please select an option:    ┃
 \t\t┃        1: Log In                ┃
@@ -656,10 +661,15 @@ Arguments : N/A
 Returns   : str containing the user's selection
 """
 def super_user_menu():
+    if logged_user==None:
+        user_tag = "No user logged in"
+    else:
+        user_tag = logged_user.name
     option = input(
 f"""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 \t\t┃          LMS User Menu          ┃
+\t\t┃{user_tag:^33}┃
 \t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 \t\t┃     Please select an option:    ┃
 \t\t┃        1: Create user           ┃
@@ -678,10 +688,15 @@ Returns   : str containing the user's selection
 """
 
 def user_menu(name):
+    if logged_user==None:
+        user_tag = "No user logged in"
+    else:
+        user_tag = logged_user.name
     option = input(
 f"""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 \t\t┃   Library Management System     ┃
+\t\t┃{user_tag:^33}┃
 \t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 \t\t┃   Please select an option:      ┃
 \t\t┃    1: Enter borrowed items      ┃
@@ -695,10 +710,15 @@ f"""
     return option
 
 def report_menu(name):
+    if logged_user==None:
+        user_tag = "No user logged in"
+    else:
+        user_tag = logged_user.name
     option = input(
 f"""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 \t\t┃      LMS Reports & Grpahs       ┃
+\t\t┃{user_tag:^33}┃
 \t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 \t\t┃   Please select an option:      ┃
 \t\t┃    1: Overdue items             ┃
@@ -711,10 +731,15 @@ f"""
     return option
 
 def chart_or_report_menu():
+    if logged_user==None:
+        user_tag = "No user logged in"
+    else:
+        user_tag = logged_user.name
     option = input(
 f"""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 \t\t┃         Report format           ┃
+\t\t┃{user_tag:^33}┃
 \t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 \t\t┃   Please select an option:      ┃
 \t\t┃    1: Chart                     ┃
@@ -731,7 +756,6 @@ def Goodbye():
 \t\t┃           Goodbye!              ┃
 \t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
     """)
-
 # --------------------------------------------
 def handle_action(location):
     isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
