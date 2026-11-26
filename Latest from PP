@@ -10,7 +10,7 @@
 """
 from time import sleep
 import os                               # import OS library to all for cls()
-import csv                              # import Pythin csv function library
+#import csv                              # import Python csv function library
 from datetime import date, datetime               # import system date method from datetime library
 from pathlib import Path                # import file Path object for basic O/S file control
 import pandas as pd                     # Import Pandas library for analytics
@@ -248,7 +248,7 @@ def get_csv_asset(csv_row, num):
 def load(csv_fname, num_fields, lst):
     if not file_exists(csv_fname): return False
     file_handle = open(csv_fname,"r", encoding = "utf-8")
-    headings = file_handle.readline()               # get headings - the object identifiers
+    file_handle.readline()               # get headings - the object identifiers
     csv_row = file_handle.readline()
     fields = []
     while csv_row != "":
@@ -387,7 +387,7 @@ def book_by_stud(stud_id, isbn):
         found = [book for book in lib_assets if isbn in vars(book).values()]  # return the book that matches the title
         if len(found) == 0: return None                                          # return None if there are no matches
         while True:                                                              # if title, must get media type
-            media = input(f"Please enter the media type of the item to be returned (paperback, hardcover, audio, digital): ").lower()  # remove case sensitivity
+            media = input("Please enter the media type of the item to be returned (paperback, hardcover, audio, digital): ").lower()  # remove case sensitivity
             if media in ("paperback", "hardcover", "audio", "digital"): break
             else: print("Invalid media type. Please try again.")
         isbn = vars(found[0])[media]                                             # get the ISBN associated with the media type
@@ -422,14 +422,14 @@ def print_borrower_book_list(borrowed_books):
     if borrower_books: 
         for book in borrower_books:    # For each key in the user's borrowed books (For each ISBN int)
             author = get_Asset(book.isbn, "author")
-            title = get_Asset(book.isbn, "title")
-            media_format = get_Asset(book.isbn, "format")
+            title = str(get_Asset(book.isbn, "title"))
+            media_format = str(get_Asset(book.isbn, "format"))
             if book.returned==None or book.returned=="": returned="On Loan"
             else: returned=str(book.returned)
             print(f"{book.id.ljust(id_width)}"+
                   f"{str(book.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
                   f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
-                  f"{book.due.ljust(date_width)}{returned.ljust(date_width)}")
+                  f"{str(book.due).ljust(date_width)}{returned.ljust(date_width)}")
     else: print(borrower, "has not borrowed any books"); return
 
 """ 
@@ -496,7 +496,7 @@ def print_library_catalogue():
         title_hd="TITLE".ljust(title_width)
         media_hd="FORMAT".ljust(media_width)
         print(f"{isbn_hd}{author_hd}{title_hd}{media_hd}")
-        for book in lib_assets: print(f"{str(book.isbn).ljust(isbn_width)}{book.author.ljust(author_width)}{str(book.title).ljust(title_width)}{get_Asset(book.isbn, 'format').ljust(media_width)}")
+        for book in lib_assets: print(f"{str(book.isbn).ljust(isbn_width)}{book.author.ljust(author_width)}{str(book.title).ljust(title_width)}{str(get_Asset(book.isbn, 'format')).ljust(media_width)}")
             
 """ 
 print_overdue_report()
@@ -756,6 +756,7 @@ def Goodbye():
 \t\t┃           Goodbye!              ┃
 \t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
     """)
+
 # --------------------------------------------
 def handle_action(location):
     isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
@@ -776,7 +777,7 @@ if load_csv_files():                            # if CSV files loaded, then cont
         if option == "1":                       # If the choice is Logging in
             name = get_user_name().title()      # Get the user's name
             if not User.login_exists(name): 
-                print(f"Name not found...please contact your supervisor for user account creation")
+                print("Name not found...please contact your supervisor for user account creation")
                 sleep(2)
             else:     # Break if the user doesn't exist
                 while True:
