@@ -369,8 +369,8 @@ Arguments
 Returns         : Asset object
 """
 def valid_book(isbn, media, loc): 
-    try: return next((book for book in loc if (str(book.isbn) == str(isbn) or book.title.lower() == isbn.lower()) and book.media_format == media), None)
-    except: return next((book for book in loc if str(book.isbn) == str(isbn) and book.media.lower() == media.lower() and book.returned == ''), None)
+    try: return next((book for book in loc if (str(book.isbn) == str(isbn) or book.title.lower() == isbn.lower()) and (book.media_format == media if not isbn.isdigit() else True)), None)  # determining a valid book in Assets. Compare media format only if isbn is string title, otherwise just pass True
+    except: return next((book for book in loc if str(book.isbn) == str(isbn) and (book.media_format == media if not isbn.isdigits() else True) and book.returned == ''), None)      # determining a valid book in BorrowedBooks
 def get_isbn(title): return next((book.isbn for book in lib_assets if book.title.lower() == title.lower()), None)
 
 def book_by_stud(stud_id, isbn):
@@ -409,10 +409,10 @@ def print_borrower_book_list(borrowed_books):
     borrower = input("Please enter the borrower's ID :").upper()
     if borrower=="":return
     borrower_books = [book for book in borrowed_books if borrower==book.id.upper()]        # get a list of books only if they are overdue
-    print(f"{"ID".ljust(id_width)}"+
-          f"{"ISBN".ljust(isbn_width)}{"AUTHOR".ljust(author_width)}"+
-          f"{"TITLE".ljust(title_width)}{"FORMAT".ljust(media_width)}"+
-          f"{"DUE".ljust(date_width)}{"RETURNED".ljust(date_width)}")
+    print(f"{'ID'.ljust(id_width)}"+
+          f"{'ISBN'.ljust(isbn_width)}{'AUTHOR'.ljust(author_width)}"+
+          f"{'TITLE'.ljust(title_width)}{'FORMAT'.ljust(media_width)}"+
+          f"{'DUE'.ljust(date_width)}{'RETURNED'.ljust(date_width)}")
 
     if borrower_books: 
         for book in borrower_books:    # For each key in the user's borrowed books (For each ISBN int)
@@ -511,10 +511,10 @@ Returns     : N/A
 """  
 def print_overdue_report():   # Overdue book report across all students
     overdue = [book for book in borrowed_books if book.is_overdue()]        # get a list of books only if they are overdue
-    print(f"{"ID".ljust(id_width)}"+
-          f"{"ISBN".ljust(isbn_width)}{"AUTHOR".ljust(author_width)}"+
-          f"{"TITLE".ljust(title_width)}{"FORMAT".ljust(media_width)}"+
-          f"{"DUE".ljust(date_width)}{"RETURNED".ljust(date_width)}")
+    print(f"{'ID'.ljust(id_width)}"+
+          f"{'ISBN'.ljust(isbn_width)}{'AUTHOR'.ljust(author_width)}"+
+          f"{'TITLE'.ljust(title_width)}{'FORMAT'.ljust(media_width)}"+
+          f"{'DUE'.ljust(date_width)}{'RETURNED'.ljust(date_width)}")
 
     if len(overdue) == 0: 
         print("No currently overdue books")
@@ -773,16 +773,18 @@ if load_csv_files():                            # if CSV files loaded, then cont
                         while curr_borrower != None:
                             isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
                             if isbn == "": break
-                            types = ['paperback', 'hardcover', 'digital', 'audio']
-                            media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
-                            if media == "": break
+                            if not isbn.isdigit():
+                                types = ['paperback', 'hardcover', 'digital', 'audio']
+                                media = validate_input(f"Please enter the media of the asset ({', '.join(types)} or leave blank to exit): ", types).capitalize()   # get input for isbn or title
+                                if media == "": break
+                            else: media = ""
                             details = valid_book(isbn, media, lib_assets)
                             if details is None: print("Book doesn't exist"); break
                             isbn = isbn if isbn.isdigit() else details.isbn     # convert isbn to integer if it was given as a title
                             period = input("Please enter the borrowing period in days (or leave blank for default 14 days): ")
                             period = None if period == "" or not period.isdigit() else int(period)
-                            Book(curr_borrower.id, curr_borrower.name, isbn, media, period=period)
-                            print(f"Borrowed {details.title} by {details.author} for {curr_borrower.name} due for return ...")
+                            book = Book(curr_borrower.id, curr_borrower.name, isbn, media if media != "" else details.media_format, period=period)
+                            print(f" - Borrowed {details.title} ({book.media}) by {details.author} for {curr_borrower.name} due for return on {book.due}")
                     elif option == "2":
                         curr_returner = Borrower.id_returning()
                         if curr_returner == False: print("Borrower doesn't exist")
