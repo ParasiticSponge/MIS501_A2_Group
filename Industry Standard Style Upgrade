@@ -153,7 +153,7 @@ class Book(Borrower):
         Returns a boolean flag to indicate if the book object is overdue
         Arguments   : Book object
         Returns     : True if overdue or False if not overdue """
-    def is_overdue(self): return self.due < today and not self.returned
+    def is_overdue(self): return True if datetime.strptime(self.due, "%d/%m/%Y") < datetime.strptime(today, "%Y-%m-%d") and not self.returned else False  # convert to datetime object
 
     """ obj return_book()
         Returns the book borrowed by setting the returned date to current date
