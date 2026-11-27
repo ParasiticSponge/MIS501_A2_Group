@@ -38,7 +38,8 @@ class User(Collection):                 # User subclass of collection
         all_users.setdefault(staff_id,self)
       
     def __str__(self):
-        return f""" User name : {self.name}
+        return f"""
+                    User name : {self.name}
                      Staff ID : {self.id}
                  Access level : {self.access}"""
     
@@ -494,9 +495,13 @@ def validate_input(msg, spec):
 
 def valid_access_level(access_level):
     access_level=access_level.strip()
-    print(access_level)
-    if len(access_level)>2 or access_level==None: return False
-    if access_level in ["0123456789"] or access_level=="10": return True 
+    if access_level is None:
+        return False
+    access_level = access_level.strip()
+    if len(access_level) > 2:
+        return False
+    if access_level in "0123456789" or access_level=="10": 
+        return True 
     else: return False
 
 def handle_action(location):
@@ -677,7 +682,7 @@ if not logged_user == None:                       # if CSV files loaded, then co
                 elif option == "4": print_library_catalogue()     # Print all the books in the library.
                 elif option == "5": break
                 else: print("Invalid option. Please try again."); sleep(2)
-        elif option == "2":
+        elif option == "2":                                                                             # User Administration
             while True:
                 if logged_user == None:
                     name = get_user_name()
@@ -687,23 +692,23 @@ if not logged_user == None:                       # if CSV files loaded, then co
                         break
                     if User.login_exists(name): logged_user = User.get_user_obj(name)
                 if logged_user==None: print("Invalid user name entered "); break
-                if str(logged_user.access) != "10":
+                if str(logged_user.access) != "10":                                                     # User login must have access rights of "10"
                     print("Insufficient access rights to enter User Administration area")
                     sleep(2)
                     break
-                super_user_option = super_user_menu(logged_user.name)
+                super_user_option = super_user_menu(logged_user.name)                                   # display User Administration menu
                 if super_user_option == "1": User.create_User()         # create user
-                elif super_user_option == "2": User.delete_User()                     # delete user - not implemented
+                elif super_user_option == "2": User.delete_User()                     # delete user
                 elif super_user_option == "3": User.list_library_users()              # show all users
                 elif super_user_option == "4":
-                    print("Change user access not implemented yet")
-                    user_to_change = input("Enter Staff ID for access change ").upper
+                    user_to_change = str(input("Enter Staff ID for access change : ").upper())
                     if user_to_change=="":                                           # change user access  - not implemented
                         print("User name not entered - Change user access level cancelled")
                         sleep(2)
                         break
+                    if user_to_change.isdigit():user_to_change=int(user_to_change)
                     new_access_level  = input("Please enter the new access level from 0..10 : ")
-                    if valid_access_level(new_access_level): all_users[str(user_to_change)]=new_access_level
+                    if valid_access_level(new_access_level): all_users[user_to_change].access=new_access_level
                     else: print("Invalid access level entered - cancelled")
                 elif super_user_option == "5": break                                  # return to main menu
         elif option == "3":
