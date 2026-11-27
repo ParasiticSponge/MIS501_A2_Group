@@ -20,7 +20,7 @@ from matplotlib.ticker import MaxNLocator
 USERCSVFILE, ASSETCSVFILE, BORROWERCSVFILE, BORROWEDBOOKSCSV = "User.csv", "Assets.csv", "Borrower.csv", "Brrwdbooks.csv"                
 isbn_width, author_width, title_width, media_width, borrower_width, id_width, date_width = 14, 25, 50, 15, 20, 10, 11
 
-today = date.today().isoformat()              # Use system date() from datetime module for current date. isoformat converts to string YYYY-MM-DD
+today = date.today().strftime("%m/%d/%Y")#.isoformat()         # Use system date() from datetime module for current date. isoformat converts to string. strftime determines the correct format and converst to string
 minTitleLength, minAuthorLength = 20, 35      # Minimum length of the title/author string. It's used to format the output of display functions. If the title/author's shorter than this length, it'll be padded with spaces to align the output.
 all_users, all_borrowers = {}, {}             # Stores all users created
 borrowed_books, lib_assets = [], []           # stores borrowed books information for each user
@@ -154,7 +154,7 @@ class Book(Borrower):
         Returns a boolean flag to indicate if the book object is overdue
         Arguments   : Book object
         Returns     : True if overdue or False if not overdue """
-    def is_overdue(self): return True if datetime.strptime(self.due, "%d/%m/%Y") < datetime.strptime(today, "%Y-%m-%d") and not self.returned else False  # convert to datetime object
+    def is_overdue(self): return True if datetime.strptime(self.due, "%m/%d/%Y") < datetime.strptime(today, "%m-%d-%Y") and not self.returned else False  # convert to datetime object
 
     """ obj return_book()
         Returns the book borrowed by setting the returned date to current date
@@ -279,7 +279,7 @@ Arguments
     period      : Int value of the borrowing period in days.
 Returns         : str containing date calculated using loan period and borrow_date """
 def calculate_due_date(borrow_date, period):
-    year, month, day = map(int, borrow_date.split("-"))  # Split the borrow date into year, month, and day. Convert them to integers.
+    month, day, year = map(int, borrow_date.split("/"))  # Split the borrow date into year, month, and day. Convert them to integers.
     day += period                                         # Add the borrowing period to the day.
     while day > days_in_month(month, year):               # While the day is greater than the number of days in the month, subtract the number of days in the month from the day and increment the month. If the month is greater than 12, increment the year and set the month to 1.
         day -= days_in_month(month, year)
@@ -287,7 +287,7 @@ def calculate_due_date(borrow_date, period):
         if month > 12:                                  # month is in following calendar year so set to January and increase year by 1
             month = 1
             year += 1
-    return f"{year}-{month:02d}-{day:02d}"             # Return the due date in the format YYYY-MM-DD. The :02d formats the month and day to be two digits with leading zeros if necessary.
+    return f"{month:02d}/{day:02d}/{year}"             # Return the due date in the format YYYY-MM-DD. The :02d formats the month and day to be two digits with leading zeros if necessary.
 
 """ int convert_isbn(isbn)
     Validates isbn string and then converts the string to integer
