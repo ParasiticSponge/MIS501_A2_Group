@@ -500,7 +500,8 @@ def valid_access_level(access_level):
     else: return False
 
 def handle_action(location):
-    isbn = input("Please enter the ISBN or Title of the asset to borrow (or leave blank to exit): ")   # get input for isbn or title
+    action = "borrow" if location == lib_assets else "return"
+    isbn = input(f"Please enter the ISBN or Title of the asset to {action} (or leave blank to exit): ")   # get input for isbn or title
     if isbn == "": return None
     if not isbn.isdigit():
         types = ['paperback', 'hardcover', 'digital', 'audio']
@@ -510,7 +511,7 @@ def handle_action(location):
     details = valid_book(isbn, media, location)
     if details is None: print("Book doesn't exist") if location == lib_assets else print("Book doesn't exist in user's borrowed books"); return None
     isbn = isbn if isbn.isdigit() else details[0].isbn     # convert isbn to integer if it was given as a title
-    return (isbn, media, details if len(details) > 1 else details[0])
+    return (isbn, media, details if location != lib_assets else details[0])
 
 def User_login():
     logged_in = False                # used to indicate if a user was able to successfully login into an account
@@ -670,7 +671,7 @@ if not logged_user == None:                       # if CSV files loaded, then co
                             except: break
                             for detail in details:     # there may be multiple books with the same isbn and format in a user's posession
                                 detail.return_book()   # even if book was returned from a new list 'location', as long as the object signatures match, it will be returned from borrowed_books
-                            print(f"Successfully returned {len(details)} {get_title(isbn) if str(isbn).isdigit() else isbn} book(s) with due date(s) {[detail.due for detail in details]}")
+                            print(f" - Successfully returned {len(details)} {get_title(isbn) if str(isbn).isdigit() else isbn} book(s) with due date(s) {[detail.due for detail in details]}")
                         else: print("User has no books to return")
                 elif option == "3": print_borrower_book_list()                                                                             # Create a new Book object and add it to the borrowed_books list.
                 elif option == "4": print_library_catalogue()     # Print all the books in the library.
