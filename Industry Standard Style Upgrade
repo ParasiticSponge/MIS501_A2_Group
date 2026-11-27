@@ -574,12 +574,6 @@ def chart_borrowed_vs_not_borrowed():
     print("Chart saved to local folder as BooksBorrowwedVNotBorrowed.pdf")
 
 '''
-str get_user_name()
-Returns a valid name entered by the user or an empty string
-
-Returns     : str containing a valid name
-            : empty str if nothing entered
-'''
 def get_user_name():
     name = input("Please enter the user name : ").strip().title()
     valid=False
@@ -589,11 +583,11 @@ def get_user_name():
             else: valid=True
             if valid==False:
                 print("User name can only contain alpha characters and spaces - please try again")
-                name = input("Please enter the user name (or leave blank to exit) : ").strip.title()
+                name = input("Please enter the user name : ").strip().title()
         else: valid=True
     return str(name.strip())
-     
 '''
+
 bool validate_str()
 Returns a boolean value of True for a valid string and False for an invalid string
 Accepts two argmuments; the first specifies the string to be validated and the second 
