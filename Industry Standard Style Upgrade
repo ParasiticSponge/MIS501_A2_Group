@@ -437,7 +437,7 @@ def get_assets_borrowed_not_borrowed_counts():
     return borrowed, not_borrowed    
 
 def chart_borrowed_vs_not_borrowed():
-    borrowed_isbns = {book.isbn for book in borrowed_books if book.returned == "" or book.returned is None}
+    borrowed_isbns = {book.isbn for book in borrowed_books}
     borrowed_count = len(borrowed_isbns)
     not_borrowed_count = sum(1 for asset in lib_assets if asset.isbn not in borrowed_isbns)
     plt.figure(figsize=(6, 6))
@@ -450,7 +450,7 @@ def chart_borrowed_vs_not_borrowed():
     plt.title("Borrowed vs Available Assets")
     plt.savefig("BooksBorrowwedVNotBorrowed.pdf",dpi=300)
     plt.show()
-    print("Chart saved to local folder as BooksBorrowwedVNotBorrowed.pdf")
+    print("\nChart saved to local folder as BooksBorrowwedVNotBorrowed.pdf")
 
 ''' str get_user_name()
     Returns a valid name entered by the user or an empty string
