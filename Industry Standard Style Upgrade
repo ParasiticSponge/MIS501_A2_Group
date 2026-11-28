@@ -51,16 +51,15 @@ class User(Collection):                 # User subclass of collection
         Returns         
             obj     : obj : containing newly created user login """
     def create_User(name=None):
-        staff_id = ""
+        user_id = ""
         if name == None: name = input("Please enter the user name leave blank to cancel: ").title()
         if name=="": return None
-        staff_id = input("Please enter the Staff ID or Guest: ").upper()
-        if staff_id == "": print("Staff ID not entered - create user cancelled"); return None
-        if staff_id == "GUEST": access = "0"
-        else:
-            access = input("Please enter the staff access level [0 or 10 for supervisor] - default is 0: ")
-            if access == "": access="0"
-        logged_user = User(staff_id, name, access)
+        if User.login_exists(name): print("User name already exists!"); return None
+        user_id = User.get_valid_User_id()
+        if user_id == None: print("Invalid user ID not entered - create user cancelled"); return None
+        access = input("Please enter the user access level [0 or 10 for supervisor] - default is 0: ")
+        if access == "": access="0"
+        logged_user = User(user_id, name, access)
         update_User_csv(USERCSVFILE, logged_user)               # add user to user csv file using pandas methods
         return logged_user
 
@@ -85,6 +84,18 @@ class User(Collection):                 # User subclass of collection
         if matching_object: return True
         else: return False
 
+    """ bool login_id_exists(id)
+        Determines if the id supplied already exists and returns True or False
+        Arguments
+            id      : str : containing the user's id
+        Returns         
+            bool    : True if the id already exists
+                    : False if the id doesn't exist """
+    def login_id_exists(User_id):
+        matching_object = next((obj for obj in all_users.values() if obj.id == User_id), None)
+        if matching_object: return True
+        else: return False
+
     """ obj get_user_obj(name)
         Returns the user object for the specified name
         Arguments
@@ -99,6 +110,36 @@ class User(Collection):                 # User subclass of collection
         Returns N/A """
     def list_library_users():
         for user in all_users.values(): print(user)          # Prints all the users in the library collection. It prints the user's name, year of birth, and contact information.
+
+    """ obj get_valid_User_id()
+        Prints a valid user id entered by the user
+        Arguments N/A
+        Returns : obj : valid user id"""
+    def get_valid_User_id():
+        valid_id = False
+        User_id=None
+        while not valid_id:
+            try:
+                User_id = input("Please enter the Staff ID LS0001...LS9999 : ").upper()
+                User_id = User.validate_User_id(User_id)
+                if User_id != None: valid_id=True
+                else: return None
+            except KeyboardInterrupt:
+                print(f"User creation cancelled")
+                return None
+        return User_id  
+
+    """ obj validate_User_id(User_id)
+        Returns a validated user id or None if User_id is invalid
+        Arguments N/A
+        Returns  : obj : validated user id or None if User_id supplied is invalid"""
+    def validate_User_id(User_id):
+        if User_id=="" or User_id==None: return None
+        if User.login_id_exists(User_id): print("User id already exists"); return None
+        if len(User_id)==6:
+            if User_id[0].isalpha() and User_id[1].isalpha(): return User_id
+            else: return None
+        else: return None
 
 class Borrower(Collection):                 # Borrowers names and ids
     def __init__(self, id, name, loan=None):
