@@ -121,6 +121,9 @@ class Borrower(Collection):                 # Borrowers names and ids
         def inner():
             input_stud_id = input("Please enter the Student ID of the borrower (or leave blank to exit): ").upper()
             if input_stud_id == "": return None 
+            if input_stud_id.isdigit:
+                print("Invalid borrower ID entered - it must start with an alphabetic character")
+                
             if input_stud_id in all_borrowers: return all_borrowers[input_stud_id]  # return an existing borrower object if the student ID is already in the all_borrowers dictionary
             else: return func(input_stud_id)    # execute the function depending on whether borrowing or returning
         return inner
@@ -328,7 +331,7 @@ def get_title(isbn): return next((book.title for book in lib_assets if str(book.
 def print_borrower_book_list():
     borrower = input("Please enter the borrower's ID :").upper()
     if borrower=="": print("Borrower ID not entered"); return
-    borrower_books = [book for book in borrowed_books if borrower==book.id.upper()]        # get a list of books only if they are overdue
+    borrower_books = [book for book in borrowed_books if borrower==str(book.id).upper()]        # get a list of books only if they are overdue
     print(f"{'ID'.ljust(id_width)}"+
           f"{'ISBN'.ljust(isbn_width)}{'AUTHOR'.ljust(author_width)}"+
           f"{'TITLE'.ljust(title_width)}{'FORMAT'.ljust(media_width)}"+
@@ -340,7 +343,7 @@ def print_borrower_book_list():
             media_format = str(get_Asset(book.isbn, "format"))
             if book.returned==None or book.returned=="": returned="On Loan"
             else: returned=str(book.returned)
-            print(f"{book.id.ljust(id_width)}"+
+            print(f"{str(book.id).ljust(id_width)}"+
                   f"{str(book.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
                   f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
                   f"{str(book.due).ljust(date_width)}{returned.ljust(date_width)}")
@@ -365,7 +368,7 @@ def print_books_borrowed_report():
         media_format = get_Asset(borrower.isbn, "format")
         if borrower.returned==None or borrower.returned=="": returned="On Loan"
         else: returned=str(borrower.returned)
-        print(f"{borrower.name.ljust(borrower_width)}{borrower.id.ljust(id_width)}"+
+        print(f"{borrower.name.ljust(borrower_width)}{str(borrower.id).ljust(id_width)}"+
               f"{str(borrower.isbn).ljust(isbn_width)}{author.ljust(author_width)}"+
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
               f"{borrower.due.ljust(date_width)}{returned.ljust(date_width)}")
@@ -702,13 +705,16 @@ if not logged_user == None:                       # if CSV files loaded, then co
                 elif super_user_option == "4":
                     user_to_change = str(input("Enter Staff ID for access change : ").upper())
                     if user_to_change=="":                                           # change user access  - not implemented
-                        print("User name not entered - Change user access level cancelled")
+                        print("User ID not entered - Change user access level cancelled")
                         sleep(2)
                         break
-                    if user_to_change.isdigit():user_to_change=int(user_to_change)
+#                    if user_to_change.isdigit():user_to_change=int(user_to_change)
                     new_access_level  = input("Please enter the new access level from 0..10 : ")
-                    if valid_access_level(new_access_level): all_users[user_to_change].access=new_access_level
-                    else: print("Invalid access level entered - cancelled")
+                    try:
+                        if valid_access_level(new_access_level): all_users[user_to_change].access=new_access_level
+                        else: print("Invalid access level entered - cancelled")
+                    except KeyError:
+                        print("User ID not found")
                 elif super_user_option == "5": break                                  # return to main menu
         elif option == "3":
             option = report_menu(logged_user.name)
