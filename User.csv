@@ -1,6 +1,10 @@
 id,name,access
-TU1234,Example,1
 TU0001,Peter Poli,10
 TU0002,Christopher Moyle,10
 TU0003,Samantha Stevens,10
-TU0004,Vipin Kumar,10
+TU0004,Vipin,10
+TU0005,Front Desk,5
+LS0001,New User1,New User1
+LS9999,New User2,10
+LS0003,New User3,New User3
+LS0004,New User4,5
