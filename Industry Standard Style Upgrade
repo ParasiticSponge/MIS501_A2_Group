@@ -7,14 +7,14 @@
       Christopher Moyle - A00236706
             Peter Poli - A00234611 
       Samantha Stevens - A00054394 """
-from time import sleep
-import collections
+from time import sleep                  # Import sleep function from time, for delay after an error message is displayed immediately before console is cleared
+import collections                      # import collections library to support object collection containers methodology
 import os                               # import OS library to all for cls()
 from datetime import date, datetime     # import system date method from datetime library
 from pathlib import Path                # import file Path object for basic O/S file control
-import pandas as pd                     # Import Pandas library for analytics
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+import pandas as pd                     # Import Pandas library as pd for analytics
+import matplotlib.pyplot as plt         # Import pylot as plt for grpahing
+from matplotlib.ticker import MaxNLocator #Import MaxNLocator frok matplotlib.ticker to deetermine the plotting intervals on a graph/chart
 
 # Constants
 USERCSVFILE, ASSETCSVFILE, BORROWERCSVFILE, BORROWEDBOOKSCSV = "User.csv", "Assets.csv", "Borrower.csv", "Brrwdbooks.csv"                
@@ -270,7 +270,7 @@ def dump(csv_fname, lst, fields):
         file_handle.write(fields+"\n") # combine all the elements in the list into a string and separate them by comma
     except: print("An error occurred while attempting to open the file :",csv_fname); return False
     for row in lst:
-        csv_row = ",".join([str(x) for x in list(vars(row).values()) if x != 0])+"\n"   # get all the values such as title, author, etc with vars() (make sure they are strings), then combine all the elements in the list into a string and separate them by comma
+        csv_row = ",".join([str(x) for x in list(vars(row).values()) if str(x) != 0])+"\n"   # get all the values such as title, author, etc with vars() (make sure they are strings), then combine all the elements in the list into a string and separate them by comma
         file_handle.write(csv_row)
     file_handle.close()
 
@@ -393,6 +393,10 @@ def print_borrower_book_list():
                   f"{str(book.due).ljust(date_width)}{returned.ljust(date_width)}")
     else: print(borrower, "has not borrowed any books"); return
 
+""" report_fields()
+    Resturns 4 strings representing report headers formatted for screen output 
+    Arguments   : 
+    Returns     : 4 preformatted strings ISBN, AUTHOR,TITLE,FORMAT"""  
 def report_fields(): return ("ISBN".ljust(isbn_width), "AUTHOR".ljust(author_width), "TITLE".ljust(title_width), "FORMAT".ljust(media_width))
 
 """ print_books_borrower_report()
@@ -417,6 +421,10 @@ def print_books_borrowed_report():
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
               f"{borrower.due.ljust(date_width)}{returned.ljust(date_width)}")
     
+""" print_books_not_borrower_report()
+    Prints all the books that have never been borrowed.
+    Arguments   : N?A
+    Returns     : N/A """  
 def print_books_not_borrowed_report():
     borrowed_isbns = {book.isbn for book in borrowed_books}
     isbn_hd, author_hd, title_hd, media_hd = report_fields()
@@ -456,6 +464,12 @@ def print_overdue_report():   # Overdue book report across all students
               f"{title.ljust(title_width)}{media_format.ljust(media_width)}"+
               f"{book.due.ljust(date_width)}{returned.ljust(date_width)}")
 
+"""
+monthly_borrowed_books_chart(borrowed_books)
+Displays a bar graph of books borrowed by month and saves it to a pdf file
+Argmuents : borrowed_books : list of book objects borrowed by all borrowers
+Returns   : NA
+"""
 def monthly_borrowed_books_chart(borrowed_books):
     if not borrowed_books: print("No borrowing records found"); return
     data = [{"borrowed": book.borrowed} for book in borrowed_books]
@@ -474,13 +488,13 @@ def monthly_borrowed_books_chart(borrowed_books):
     plt.show()
     print("Chart saved to local folder as BooksBorrowedMonthly.pdf")
 
-# TODO Not being used
-def get_assets_borrowed_not_borrowed_counts():
-    borrowed_isbns = {book.isbn for book in borrowed_books if book.returned == ""}
-    borrowed = sum(1 for asset in lib_assets if asset.isbn in borrowed_isbns)
-    not_borrowed = len(lib_assets) - borrowed
-    return borrowed, not_borrowed    
 
+"""
+chart_borrowed_vs_not_borrowed()
+Displays a pie chart shoiwng all books borrowed v all books nevre borrowed saves it to a pdf file
+Argmuents : NA
+Returns   : NA
+"""
 def chart_borrowed_vs_not_borrowed():
     borrowed_isbns = {book.isbn for book in borrowed_books}
     borrowed_count = len(borrowed_isbns)
@@ -525,7 +539,8 @@ def validate_str(string, valid_chars):
     try: return next((False for char in string if char.upper() not in valid_chars))
     except: return True
 
-""" Returns the input if it's within the specifications
+""" validate_input(msg, spec)
+    Returns the input if it's within the specifications
     Accepts a message to be displayed to the user and specifications to bound the input
     Specs can be True to only accept strings or False to only accpet integers, a list to accept only the elements in that list,
     or both, as a tuple containing True or False, and a list of accepted elements """
@@ -538,7 +553,13 @@ def validate_input(msg, spec):
         try: 
             if action in valid: return action                       # action in list of accepted terms
         except: print("Input invalid. Please try again.")
-
+"""
+bool valid_access_level(access_level)
+Returns a boolean flag to indicate if access level is valid or not
+Arguments:   access_level 
+Returns:    bool: True if valid
+                : False if invalid
+"""
 def valid_access_level(access_level):
     access_level=access_level.strip()
     if access_level is None:
@@ -564,6 +585,13 @@ def handle_action(location):
     isbn = isbn if isbn.isdigit() else details[0].isbn     # convert isbn to integer if it was given as a title
     return (isbn, media, details if location != lib_assets else details[0])
 
+"""
+obj User_login()
+Returns the User obj if user logged in successfully
+Arguments   :   NA
+Returns     :   User object if login successful
+            :   None if login canelled or unsuccessful
+"""
 def User_login():
     logged_in = False                # used to indicate if a user was able to successfully login into an account
     while not logged_in:
@@ -628,7 +656,6 @@ f"""
 """ Displays the LMS Users menu and returns the user choice
     Arguments : N/A
     Returns   : str containing the user's selection """
-
 def user_menu(name):
     if name==None: user_tag = "No user logged in"
     else: user_tag = name
@@ -648,6 +675,9 @@ f"""
 """)
     return option
 
+""" Displays a menu giving the choice Reports and returns the user's choice
+    Arguments : N/A
+    Returns   : str containing the user's selection """
 def report_menu(name):
     if name==None: user_tag = "No user logged in"
     else: user_tag = logged_user.name
@@ -667,6 +697,9 @@ f"""
 """)
     return option
 
+""" Displays a menu giving the choices of Chart or Report and returns the user's choice
+    Arguments : N/A
+    Returns   : str containing the user's selection """
 def chart_or_report_menu(name):
     if name==None: user_tag = "No user logged in"
     else: user_tag = name
@@ -682,7 +715,11 @@ f"""
 \t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 """)
     return option
-
+"""
+Goodbye()
+Displays exit message
+    Arguments : N/A
+    Returns   : NA"""
 def Goodbye():
     print("""
 \t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -696,12 +733,12 @@ def Goodbye():
 clear_screen()
 load_csv_files()
 logged_user = User_login()
-if not logged_user == None:                       # if CSV files loaded, then continue
+if not logged_user == None:                     # if CSV files loaded, then continue
     while True:                                 # Keep the program running until the user chooses to quit.
-        option = menu(logged_user.name)                         # Display the menu and get the user's choice.
-        if option == "1":                       # If the choice is Logging in
+        option = menu(logged_user.name)         # Display the main  menu and get the user's choice.
+        if option == "1":                       # Loans & returns
             while True:
-                option = user_menu(logged_user.name)                  # After validation, show the user menu.
+                option = user_menu(logged_user.name)                  Loans & reutrns menu
                 if option == "1":                                     # If the option is to borrow
                     curr_borrower = Borrower.id_borrowing()           # ask for the student id
                     while curr_borrower != None:
@@ -712,7 +749,7 @@ if not logged_user == None:                       # if CSV files loaded, then co
                         period = None if period == "" else int(period)
                         for i in range(int(amount)): book = Book(curr_borrower.id, curr_borrower.name, isbn, media if media != "" else details.media_format, period=period)  # borrow multiple
                         print(f" - Borrowed {amount} copies of {details.title} ({book.media}) by {details.author} for {curr_borrower.name} due for return on {book.due}")
-                elif option == "2":
+                elif option == "2":                                  # return books
                     curr_returner = Borrower.id_returning()
                     if curr_returner == False: print("Borrower doesn't exist")
                     elif curr_returner != None:
@@ -724,7 +761,7 @@ if not logged_user == None:                       # if CSV files loaded, then co
                                 detail.return_book()   # even if book was returned from a new list 'location', as long as the object signatures match, it will be returned from borrowed_books
                             print(f" - Successfully returned {len(details)} {get_title(isbn) if str(isbn).isdigit() else isbn} book(s) with due date(s) {[detail.due for detail in details]}")
                         else: print("User has no books to return")
-                elif option == "3": print_borrower_book_list()                                                                             # Create a new Book object and add it to the borrowed_books list.
+                elif option == "3": print_borrower_book_list()    # print the borrowed_books list.
                 elif option == "4": print_library_catalogue()     # Print all the books in the library.
                 elif option == "5": break
                 else: print("Invalid option. Please try again."); sleep(2)
@@ -746,13 +783,12 @@ if not logged_user == None:                       # if CSV files loaded, then co
                 if super_user_option == "1": User.create_User()         # create user
                 elif super_user_option == "2": User.delete_User()                     # delete user
                 elif super_user_option == "3": User.list_library_users()              # show all users
-                elif super_user_option == "4":
+                elif super_user_option == "4":                                        # change user access
                     user_to_change = str(input("Enter Staff ID for access change : ").upper())
-                    if user_to_change=="":                                           # change user access  - not implemented
+                    if user_to_change=="":                                          
                         print("User ID not entered - Change user access level cancelled")
                         sleep(2)
                         break
-#                    if user_to_change.isdigit():user_to_change=int(user_to_change)
                     new_access_level  = input("Please enter the new access level from 0..10 : ")
                     try:
                         if valid_access_level(new_access_level): all_users[user_to_change].access=new_access_level
@@ -760,19 +796,19 @@ if not logged_user == None:                       # if CSV files loaded, then co
                     except KeyError:
                         print("User ID not found")
                 elif super_user_option == "5": break                                  # return to main menu
-        elif option == "3":
+        elif option == "3":                                                           # display repiort menu
             option = report_menu(logged_user.name)
             while True:
-                if option=="1": print_overdue_report()
-                elif option=="2": print_books_borrowed_report()
-                elif option=="3": monthly_borrowed_books_chart(borrowed_books)
+                if option=="1": print_overdue_report()                                # Overdue book report
+                elif option=="2": print_books_borrowed_report()                       # Books borrowed report
+                elif option=="3": monthly_borrowed_books_chart(borrowed_books)        # Books borrowed chart by month
                 elif option=="4": 
                     rep_type = chart_or_report_menu(logged_user.name).upper()
-                    if rep_type =="1": chart_borrowed_vs_not_borrowed()
-                    elif rep_type== "2": print_books_not_borrowed_report()
+                    if rep_type =="1": chart_borrowed_vs_not_borrowed()               # Books not borrowed v books borrowed pie chart
+                    elif rep_type== "2": print_books_not_borrowed_report()            # Books not borrowed v books borrowed report
                 elif option=="5": break
                 option = report_menu(logged_user.name)
-        elif option == "4":
+        elif option == "4":                                                        # dump csv files and exit program
             dump(USERCSVFILE, list(all_users.values()), "id,name,access")
             dump(ASSETCSVFILE, lib_assets, "author,title,isbn,media")
             dump(BORROWERCSVFILE, list(all_borrowers.values()), "id,name,books")
